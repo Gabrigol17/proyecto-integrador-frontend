@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="SGMI - Panel web de gestión de mantenimiento industrial">
+    <title>SGMI · Panel de mantenimiento</title>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="./css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <a class="visually-hidden-focusable skip-link" href="#main-content">Saltar al contenido</a>
+    <noscript>
+        <div class="alert alert-warning m-3 mb-0" role="alert">
+            Este panel necesita JavaScript habilitado para consumir la API y mostrar los datos.
+        </div>
+    </noscript>
+
+    <div class="app-shell">
+        <!-- Navegacion de escritorio -->
+        <aside class="sidebar sidebar-desktop d-none d-lg-flex flex-column" aria-label="Navegación principal">
+            <a class="brand" href="#/dashboard" aria-label="SGMI, ir al panel principal">
+                <span class="brand-mark"><i class="bi bi-gear-wide-connected" aria-hidden="true"></i></span>
+                <span class="brand-copy">
+                    <strong>SGMI</strong>
+                    <small>Planta Industrial</small>
+                </span>
+            </a>
+
+            <p class="sidebar-label">Navegación</p>
+            <nav class="nav nav-pills flex-column gap-1">
+                <a class="nav-link" data-route="dashboard" href="#/dashboard">
+                    <i class="bi bi-speedometer2" aria-hidden="true"></i> Panel principal
+                </a>
+                <a class="nav-link" data-route="ordenes" href="#/ordenes">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i> Órdenes de mantenimiento
+                </a>
+                <a class="nav-link" data-route="cola" href="#/cola">
+                    <i class="bi bi-sort-down" aria-hidden="true"></i> Cola de prioridad
+                </a>
+                <a class="nav-link" data-route="equipos" href="#/equipos">
+                    <i class="bi bi-diagram-3" aria-hidden="true"></i> Equipos e índice AVL
+                </a>
+                <a class="nav-link" data-route="areas" href="#/areas">
+                    <i class="bi bi-buildings" aria-hidden="true"></i> Gestión de áreas
+                </a>
+                <a class="nav-link" data-route="historial" href="#/historial">
+                    <i class="bi bi-clock-history" aria-hidden="true"></i> Historial de acciones
+                </a>
+                <a class="nav-link" data-route="estadisticas" href="#/estadisticas">
+                    <i class="bi bi-bar-chart-line" aria-hidden="true"></i> Indicadores y estadísticas
+                </a>
+                <a class="nav-link nav-link-muted" data-route="carbono" href="#/carbono">
+                    <i class="bi bi-cloud-slash" aria-hidden="true"></i> Huella de carbono
+                    <span class="badge rounded-pill text-bg-secondary ms-auto">API pendiente</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-spacer"></div>
+
+            <div class="rule-card">
+                <p class="rule-title"><i class="bi bi-calculator" aria-hidden="true"></i> Regla de criticidad</p>
+                <code class="rule-formula">2 × impacto + 2 × riesgo<br>+ 2 si no hay respaldo</code>
+                <div class="rule-levels">
+                    <span><b class="text-danger">ALTA</b> ≥ 11 pts o riesgo 3</span>
+                    <span><b class="text-warning">MEDIA</b> 7 – 10 pts</span>
+                    <span><b class="text-success">BAJA</b> ≤ 6 pts</span>
+                </div>
+            </div>
+
+            <p class="sidebar-foot"><i class="bi bi-hdd-network" aria-hidden="true"></i> API REST · Spring Boot</p>
+        </aside>
+
+        <!-- Navegacion movil -->
+        <div class="offcanvas offcanvas-start sidebar sidebar-mobile" tabindex="-1" id="mobile-sidebar" aria-labelledby="mobile-sidebar-title">
+            <div class="offcanvas-header">
+                <div class="brand" id="mobile-sidebar-title">
+                    <span class="brand-mark"><i class="bi bi-gear-wide-connected" aria-hidden="true"></i></span>
+                    <span class="brand-copy"><strong>SGMI</strong><small>Planta Industrial</small></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar menú"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column">
+                <p class="sidebar-label">Navegación</p>
+                <nav class="nav nav-pills flex-column gap-1">
+                    <a class="nav-link" data-route="dashboard" href="#/dashboard"><i class="bi bi-speedometer2" aria-hidden="true"></i> Panel principal</a>
+                    <a class="nav-link" data-route="ordenes" href="#/ordenes"><i class="bi bi-clipboard-check" aria-hidden="true"></i> Órdenes</a>
+                    <a class="nav-link" data-route="cola" href="#/cola"><i class="bi bi-sort-down" aria-hidden="true"></i> Cola de prioridad</a>
+                    <a class="nav-link" data-route="equipos" href="#/equipos"><i class="bi bi-diagram-3" aria-hidden="true"></i> Equipos e índice AVL</a>
+                    <a class="nav-link" data-route="areas" href="#/areas"><i class="bi bi-buildings" aria-hidden="true"></i> Gestión de áreas</a>
+                    <a class="nav-link" data-route="historial" href="#/historial"><i class="bi bi-clock-history" aria-hidden="true"></i> Historial de acciones</a>
+                    <a class="nav-link" data-route="estadisticas" href="#/estadisticas"><i class="bi bi-bar-chart-line" aria-hidden="true"></i> Indicadores y estadísticas</a>
+                    <a class="nav-link nav-link-muted" data-route="carbono" href="#/carbono"><i class="bi bi-cloud-slash" aria-hidden="true"></i> Huella de carbono</a>
+                </nav>
+                <div class="sidebar-spacer"></div>
+                <p class="sidebar-foot"><i class="bi bi-hdd-network" aria-hidden="true"></i> API REST · Spring Boot</p>
+            </div>
+        </div>
+
+        <div class="app-main">
+            <header class="topbar">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <button class="btn btn-icon d-lg-none" type="button" data-bs-toggle="offcanvas"
+                            data-bs-target="#mobile-sidebar" aria-controls="mobile-sidebar" aria-label="Abrir menú">
+                        <i class="bi bi-list" aria-hidden="true"></i>
+                    </button>
+                    <span class="topbar-title d-lg-none">SGMI</span>
+                </div>
+
+                <div class="topbar-actions">
+                    <span id="connection-chip" class="connection-chip" data-state="checking" title="Estado de la API">
+                        <span class="connection-dot" aria-hidden="true"></span>
+                        <span id="connection-text">Verificando API</span>
+                    </span>
+                    <span class="topbar-stat d-none d-md-inline-flex" title="Órdenes pendientes en la cola">
+                        <i class="bi bi-stack" aria-hidden="true"></i> Cola <strong id="nav-queue">—</strong>
+                    </span>
+                    <span class="topbar-stat d-none d-md-inline-flex" title="Equipos indexados en el AVL">
+                        <i class="bi bi-diagram-3" aria-hidden="true"></i> AVL <strong id="nav-avl">—</strong>
+                    </span>
+                    <span class="topbar-stat d-none d-xl-inline-flex" title="Acciones disponibles para deshacer">
+                        <i class="bi bi-clock-history" aria-hidden="true"></i> Pila <strong id="nav-stack">—</strong>
+                    </span>
+                    <button id="btn-undo" class="btn btn-sm btn-outline-warning" type="button"
+                            title="Deshacer la última acción de la pila (LIFO)" disabled>
+                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                        <span class="d-none d-xl-inline">Deshacer</span>
+                    </button>
+                    <button id="btn-refresh" class="btn btn-sm btn-primary" type="button" title="Actualizar la vista actual">
+                        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline">Actualizar</span>
+                    </button>
+                </div>
+            </header>
+
+            <main id="main-content" class="content" tabindex="-1">
+                <div id="view-root" aria-live="polite"></div>
+            </main>
+
+            <footer class="app-footer">
+                <span>SGMI · Gestión de Mantenimiento Industrial</span>
+                <span id="last-updated">Sin actualizar</span>
+            </footer>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" aria-live="polite" aria-atomic="true"></div>
+    <div id="modal-root"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
