@@ -803,18 +803,6 @@ body {
         linear-gradient(160deg, rgba(17, 31, 51, .98), rgba(10, 19, 34, .98));
 }
 
-.top-order-card::after {
-    content: "O(1)";
-    position: absolute;
-    right: 1.2rem;
-    bottom: .6rem;
-    color: rgba(96, 165, 250, .15);
-    font-family: "Cascadia Code", Consolas, monospace;
-    font-size: 3.2rem;
-    font-weight: 700;
-    pointer-events: none;
-}
-
 .order-id {
     color: var(--sgmi-text);
     font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
