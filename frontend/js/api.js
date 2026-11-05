@@ -118,4 +118,9 @@ export const api = {
     },
 
     estadisticas: () => request('/estadisticas'),
+
+    carbono: {
+        resumen: () => request('/carbono/resumen'),
+        registros: () => request('/carbono/registros'),
+    },
 };
