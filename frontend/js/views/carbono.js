@@ -10,6 +10,74 @@ import {
 
 const numberFormatter = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 4 });
 
+const COLUMN_LABELS = {
+    idRegistro: 'ID registro',
+    codigoEquipo: 'Código equipo',
+    nombreEquipo: 'Equipo',
+    area: 'Área',
+    fecha: 'Fecha',
+    consumoKwh: 'Consumo (kWh)',
+    emisionesKgCo2: 'Emisiones (kg CO₂)',
+    emisionesKgCO2: 'Emisiones (kg CO₂)',
+};
+
+const DEMO_FACTOR = 0.15;
+const DEMO_RECORDS = [
+    { fecha: '2026-10-24', codigoEquipo: 'ILU-003', nombreEquipo: 'Iluminación nave principal', area: 'Servicios', consumoKwh: 320, emisionesKgCo2: 48 },
+    { fecha: '2026-10-22', codigoEquipo: 'REF-006', nombreEquipo: 'Cámara de refrigeración', area: 'Logística', consumoKwh: 1110, emisionesKgCo2: 166.5 },
+    { fecha: '2026-10-19', codigoEquipo: 'MON-005', nombreEquipo: 'Montacargas eléctrico', area: 'Logística', consumoKwh: 760, emisionesKgCo2: 114 },
+    { fecha: '2026-10-17', codigoEquipo: 'MOT-001', nombreEquipo: 'Motor de bombeo principal', area: 'Producción', consumoKwh: 760, emisionesKgCo2: 114 },
+    { fecha: '2026-10-12', codigoEquipo: 'CAL-004', nombreEquipo: 'Caldera de vapor', area: 'Servicios', consumoKwh: 1560, emisionesKgCo2: 234 },
+    { fecha: '2026-10-10', codigoEquipo: 'ILU-003', nombreEquipo: 'Iluminación nave principal', area: 'Servicios', consumoKwh: 300, emisionesKgCo2: 45 },
+    { fecha: '2026-10-05', codigoEquipo: 'COM-002', nombreEquipo: 'Compresor de aire', area: 'Producción', consumoKwh: 940, emisionesKgCo2: 141 },
+    { fecha: '2026-10-03', codigoEquipo: 'MOT-001', nombreEquipo: 'Motor de bombeo principal', area: 'Producción', consumoKwh: 520, emisionesKgCo2: 78 },
+];
+
+function buildDemoSummary(records) {
+    const areas = new Map();
+    const equipment = new Map();
+
+    for (const record of records) {
+        areas.set(record.area, (areas.get(record.area) ?? 0) + record.emisionesKgCo2);
+
+        const current = equipment.get(record.codigoEquipo) ?? {
+            codigoEquipo: record.codigoEquipo,
+            nombreEquipo: record.nombreEquipo,
+            area: record.area,
+            emisionesKgCo2: 0,
+        };
+        current.emisionesKgCo2 += record.emisionesKgCo2;
+        equipment.set(record.codigoEquipo, current);
+    }
+
+    return {
+        totalEmisionesKgCo2: records.reduce((sum, record) => sum + record.emisionesKgCo2, 0),
+        equiposConEmisiones: equipment.size,
+        totalRegistros: records.length,
+        factorEmision: DEMO_FACTOR,
+        emisionesPorArea: [...areas.entries()]
+            .map(([area, emisionesKgCo2]) => ({ area, emisionesKgCo2 }))
+            .sort((a, b) => b.emisionesKgCo2 - a.emisionesKgCo2),
+        emisionesPorEquipo: [...equipment.values()]
+            .sort((a, b) => b.emisionesKgCo2 - a.emisionesKgCo2),
+    };
+}
+
+const DEMO_SUMMARY = buildDemoSummary(DEMO_RECORDS);
+
+function isValidSummary(summary) {
+    return Boolean(summary) && typeof summary === 'object' && !Array.isArray(summary);
+}
+
+function hasCarbonData(summary, records) {
+    if (Number(summary.totalRegistros) > 0) return true;
+    if (!Array.isArray(records) || records.length > 0) return true;
+    const emptyBreakdowns = ['emisionesPorArea', 'emisionesPorEquipo'].every(
+        (key) => Array.isArray(summary[key]) && summary[key].length === 0,
+    );
+    return !emptyBreakdowns;
+}
+
 function metric(value, label) {
     if (typeof value !== 'number' || !Number.isFinite(value)) {
         throw new Error(`La API devolvió un valor inválido para ${label}.`);
@@ -25,6 +93,7 @@ function displayValue(value) {
 }
 
 function columnLabel(key) {
+    if (Object.hasOwn(COLUMN_LABELS, key)) return COLUMN_LABELS[key];
     return key
         .replaceAll('_', ' ')
         .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
@@ -67,14 +136,14 @@ function dataTable(title, subtitle, items, emptyDescription) {
         </section>`;
 }
 
-function render(summary, records) {
-    if (!summary || typeof summary !== 'object' || Array.isArray(summary)) {
+function render(summary, records, { demo = false } = {}) {
+    if (!isValidSummary(summary)) {
         throw new Error('La API devolvió un resumen de huella de carbono inválido.');
     }
 
     return `
         ${pageHeader({
-            eyebrow: 'Datos del backend',
+            eyebrow: demo ? 'Escenario de demostración' : 'Datos del backend',
             title: 'Huella de carbono',
         })}
 
@@ -109,10 +178,13 @@ function render(summary, records) {
             })}
         </div>
 
-        ${Number(summary.totalRegistros) === 0 ? `
-            <div class="alert alert-info d-flex align-items-center gap-2" role="status">
-                <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
-                <span>El backend aún no tiene registros de emisiones. Los indicadores muestran los valores reales actuales.</span>
+        ${demo ? `
+            <div class="alert alert-warning d-flex align-items-start gap-2" role="status">
+                <i class="bi bi-stars mt-1" aria-hidden="true"></i>
+                <div>
+                    <strong>Datos de demostración.</strong>
+                    <div class="small mt-1">La API no tiene registros de emisiones. Estas cifras son un escenario ilustrativo para presentar el módulo y no representan mediciones reales.</div>
+                </div>
             </div>` : ''}
 
         <div class="row g-3 mb-3">
@@ -154,7 +226,10 @@ export async function mount(root) {
                 api.carbono.registros(),
             ]);
             if (!active) return;
-            root.innerHTML = render(summary, records);
+            const demo = isValidSummary(summary) && !hasCarbonData(summary, records);
+            root.innerHTML = demo
+                ? render(DEMO_SUMMARY, DEMO_RECORDS, { demo: true })
+                : render(summary, records);
         } catch (error) {
             if (!active) return;
             root.innerHTML = errorPanel(error.message);

@@ -88,7 +88,7 @@ de destruir la vista anterior y cerrar modales al navegar.
 | Gestión de áreas | `#/areas` | CRUD con conteo de equipos asociados |
 | Historial de acciones | `#/historial` | Ver la pila LIFO persistente y deshacer la última acción, incluida `BAJA_EQUIPO` |
 | Indicadores y estadísticas | `#/estadisticas` | Tarjetas y distribuciones reales de la API |
-| Huella de carbono | `#/carbono` | Resumen, emisiones por área/equipo y registros del backend |
+| Huella de carbono | `#/carbono` | Resumen, emisiones por área/equipo y registros; si no hay datos, escenario de demostración marcado |
 
 ## 6. Endpoints usados
 
@@ -154,7 +154,10 @@ GET    /api/carbono/registros
 ## 8. Limitaciones conocidas
 
 - **Huella de carbono:** el frontend muestra el resumen y los registros reportados por
-  esos endpoints. La creación o edición de mediciones no está habilitada desde la interfaz.
+  esos endpoints. Cuando la API devuelve cero registros y desgloses vacíos, muestra un
+  escenario de demostración calculado en el cliente, identificado con un badge y un aviso;
+  no se envía al backend ni se guarda. La creación o edición de mediciones no está
+  habilitada desde la interfaz.
 - **Árbol AVL:** la API devuelve el recorrido inorden y la altura, no la forma interna del
   árbol. La vista muestra el índice ordenado y las métricas reales, sin dibujar nodos
   inventados.
