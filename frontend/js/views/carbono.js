@@ -76,35 +76,34 @@ function render(summary, records) {
         ${pageHeader({
             eyebrow: 'Datos del backend',
             title: 'Huella de carbono',
-            subtitle: 'Emisiones calculadas por la API a partir de los registros persistidos.',
         })}
 
         <div class="row g-3 mb-3">
             ${statCard({
                 label: 'Emisiones totales',
                 value: `${metric(summary.totalEmisionesKgCo2, 'emisiones totales')} kg CO₂`,
-                detail: 'Total reportado por la API',
+                detail: '',
                 icon: 'cloud',
                 tone: 'green',
             })}
             ${statCard({
                 label: 'Equipos con emisiones',
                 value: metric(summary.equiposConEmisiones, 'equipos con emisiones'),
-                detail: 'Equipos incluidos en el cálculo',
+                detail: '',
                 icon: 'cpu',
                 tone: 'cyan',
             })}
             ${statCard({
                 label: 'Registros',
                 value: metric(summary.totalRegistros, 'total de registros'),
-                detail: 'Mediciones registradas',
+                detail: '',
                 icon: 'journals',
                 tone: 'blue',
             })}
             ${statCard({
                 label: 'Factor de emisión',
                 value: `${metric(summary.factorEmision, 'factor de emisión')} kg CO₂/kWh`,
-                detail: 'Factor reportado por la API',
+                detail: '',
                 icon: 'activity',
                 tone: 'amber',
             })}
@@ -120,7 +119,7 @@ function render(summary, records) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por área',
-                    'Distribución calculada por el backend.',
+                    '',
                     summary.emisionesPorArea,
                     'Todavía no hay emisiones asociadas a áreas.',
                 )}
@@ -128,7 +127,7 @@ function render(summary, records) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por equipo',
-                    'Distribución calculada por el backend.',
+                    '',
                     summary.emisionesPorEquipo,
                     'Todavía no hay emisiones asociadas a equipos.',
                 )}
@@ -137,7 +136,7 @@ function render(summary, records) {
 
         ${dataTable(
             'Registros de emisiones',
-            'Mediciones almacenadas en el backend.',
+            '',
             records,
             'No hay registros de emisiones para mostrar.',
         )}`;
