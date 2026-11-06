@@ -58,7 +58,7 @@ function render(areas, equipos) {
         ${pageHeader({
             eyebrow: 'Catálogo de la planta',
             title: 'Gestión de áreas',
-            subtitle: 'CRUD completo sobre PostgreSQL. Un área con equipos asociados no se puede eliminar.',
+            subtitle: 'Un área con equipos asociados no se puede eliminar.',
             actions: `
                 <button type="button" class="btn btn-primary" id="btn-new-area">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva área
@@ -77,7 +77,7 @@ function render(areas, equipos) {
                     <h2 class="panel-title" id="areas-table-title">Áreas registradas</h2>
                     <p class="panel-subtitle">El nombre es obligatorio y no puede repetirse, sin distinguir mayúsculas.</p>
                 </div>
-                <span class="section-label">${areas.length} fila(s)</span>
+                <span class="section-label">${areas.length} registro(s)</span>
             </div>
             <div class="panel-body pt-0">
                 <div class="table-responsive">

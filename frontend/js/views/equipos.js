@@ -54,7 +54,6 @@ function render(equipos, areas, stats) {
         ${pageHeader({
             eyebrow: 'Catálogo indexado',
             title: 'Equipos e índice AVL',
-            subtitle: 'El backend devuelve los equipos en recorrido inorden. El código identifica al equipo y no se modifica desde la API.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/areas">
                     <i class="bi bi-buildings" aria-hidden="true"></i> Gestionar áreas
@@ -78,7 +77,6 @@ function render(equipos, areas, stats) {
                         <span class="stat-icon"><i class="bi bi-diagram-3" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${escapeHtml(equipos.length)}</div>
-                    <div class="stat-detail">Recorrido inorden del AVL</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
@@ -88,7 +86,6 @@ function render(equipos, areas, stats) {
                         <span class="stat-icon"><i class="bi bi-tree" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${escapeHtml(stats.alturaArbolEquipos ?? '—')}</div>
-                    <div class="stat-detail">Autobalanceado · |fb| ≤ 1</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
@@ -98,7 +95,6 @@ function render(equipos, areas, stats) {
                         <span class="stat-icon"><i class="bi bi-buildings" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${escapeHtml(areas.length)}</div>
-                    <div class="stat-detail">Para asignar equipos</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
@@ -108,7 +104,6 @@ function render(equipos, areas, stats) {
                         <span class="stat-icon"><i class="bi bi-clipboard-check" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${formatNumber(stats.totalOrdenes)}</div>
-                    <div class="stat-detail">Histórico de la planta</div>
                 </div>
             </div>
         </div>
@@ -116,8 +111,8 @@ function render(equipos, areas, stats) {
         <section class="panel mb-3" aria-labelledby="avl-index-title">
             <div class="panel-header pb-2">
                 <div>
-                    <h2 class="panel-title" id="avl-index-title">Índice ordenado (inorden)</h2>
-                    <p class="panel-subtitle">La API no expone la forma interna del árbol; sí su recorrido ordenado y su altura.</p>
+                    <h2 class="panel-title" id="avl-index-title">Índice ordenado</h2>
+                    <p class="panel-subtitle"></p>
                 </div>
                 <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">
                     ${equipos.length} nodo(s) · altura ${escapeHtml(stats.alturaArbolEquipos ?? '—')}

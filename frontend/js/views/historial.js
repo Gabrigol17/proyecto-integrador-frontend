@@ -42,7 +42,7 @@ function render(actions) {
         ${pageHeader({
             eyebrow: 'Pila',
             title: 'Historial de acciones',
-            subtitle: 'Cada operación guarda una copia del estado previo. La reversión se confirma en PostgreSQL antes de desapilar.',
+            subtitle: 'Cada operación guarda una copia del estado previo.',
             actions: `
                 <button type="button" class="btn btn-warning" id="btn-undo-history" ${actions.length ? '' : 'disabled'}>
                     <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Deshacer última acción
