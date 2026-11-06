@@ -108,12 +108,6 @@ function render(actions) {
                             </div>
                         </dl>
 
-                        <p class="section-label mt-4 mb-2">Complejidad</p>
-                        <div class="complexity-list">
-                            <span>Apilar (push) <b>O(1)</b></span>
-                            <span>Desapilar (pop) <b>O(1)</b></span>
-                            <span>Ver tope (peek) <b>O(1)</b></span>
-                        </div>
 
                         <p class="small text-secondary mt-3 mb-2">
                             Tipos registrados: CREAR, MODIFICAR, CANCELAR y CERRAR.
