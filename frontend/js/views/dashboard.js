@@ -62,7 +62,7 @@ function render(stats, queue) {
             ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: 'En la cola de prioridad', icon: 'hourglass-split', tone: 'cyan' })}
             ${statCard({ label: 'Cerradas', value: stats.cerradas, detail: 'Atendidas', icon: 'check2-circle', tone: 'green' })}
             ${statCard({ label: 'Canceladas', value: stats.canceladas, detail: 'Retiradas de la cola', icon: 'x-circle', tone: 'red' })}
-            ${statCard({ label: 'Equipos registrados', value: stats.equiposEnIndice, detail: `Índice AVL · altura ${stats.alturaArbolEquipos}`, icon: 'diagram-3', tone: 'cyan' })}
+            ${statCard({ label: 'Equipos activos', value: stats.equiposEnIndice, detail: `Índice AVL · altura ${stats.alturaArbolEquipos}`, icon: 'diagram-3', tone: 'cyan' })}
             ${statCard({ label: 'Criticidad alta', value: alta, detail: 'Órdenes históricas', icon: 'exclamation-triangle', tone: 'red' })}
             ${statCard({ label: 'Criticidad media', value: media, detail: 'Órdenes históricas', icon: 'dash-circle', tone: 'amber' })}
             ${statCard({ label: 'Criticidad baja', value: baja, detail: 'Órdenes históricas', icon: 'arrow-down-circle', tone: 'green' })}
@@ -95,8 +95,8 @@ function render(stats, queue) {
                 <section class="panel h-100" aria-labelledby="structures-title">
                     <div class="panel-header">
                         <div>
-                            <h2 class="panel-title" id="structures-title">Estructuras en memoria</h2>
-                            <p class="panel-subtitle">Estado actual del heap, del AVL y de la pila LIFO.</p>
+                            <h2 class="panel-title" id="structures-title">Estado de las estructuras</h2>
+                            <p class="panel-subtitle">Estado actual del heap, del AVL y de la pila LIFO persistente.</p>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -132,7 +132,7 @@ function render(stats, queue) {
                         </div>
                         <p class="small text-secondary mt-3 mb-0">
                             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                            La pila es temporal y vive en la memoria del proceso del backend.
+                            La pila de acciones se persiste y se conserva al reiniciar el backend.
                         </p>
                     </div>
                 </section>

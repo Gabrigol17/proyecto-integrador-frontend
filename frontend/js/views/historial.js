@@ -15,18 +15,84 @@ import {
     showToast,
 } from '../ui.js';
 
+function equipmentCode(action) {
+    return action.codigoEquipo
+        ?? action.equipoCodigo
+        ?? action.equipo?.codigo
+        ?? action.equipoPrevio?.codigo
+        ?? action.estadoPrevio?.codigoEquipo
+        ?? action.estadoPrevio?.codigo
+        ?? null;
+}
+
+function equipmentName(action) {
+    return action.nombreEquipo
+        ?? action.equipo?.nombre
+        ?? action.equipoPrevio?.nombre
+        ?? action.estadoPrevio?.nombre
+        ?? null;
+}
+
+function orderReference(action) {
+    return action.idOrden === undefined || action.idOrden === null
+        ? null
+        : `OM-${action.idOrden}`;
+}
+
+function actionReference(action) {
+    const parts = [orderReference(action), equipmentCode(action)].filter(Boolean);
+    return parts.length ? parts.join(' · ') : '—';
+}
+
+function asCount(value) {
+    if (Array.isArray(value)) return value.length;
+    if (value === undefined || value === null || value === '') return null;
+    const count = Number(value);
+    return Number.isFinite(count) ? count : null;
+}
+
+function removedPendingOrders(action) {
+    return asCount(action.ordenesEliminadas)
+        ?? asCount(action.ordenesPendientesEliminadas)
+        ?? asCount(action.cantidadOrdenesEliminadas);
+}
+
+function previousState(action) {
+    if (action.estadoPrevio?.estado) return action.estadoPrevio.estado;
+    if (action.tipo === 'BAJA_EQUIPO') {
+        return action.estadoPrevio?.activo === false ? 'INACTIVO' : 'ACTIVO';
+    }
+    return '—';
+}
+
+function actionDetail(action) {
+    if (action.tipo !== 'BAJA_EQUIPO') {
+        return action.estadoPrevio?.descripcion || action.descripcion || '—';
+    }
+
+    if (action.descripcion) return action.descripcion;
+
+    const name = equipmentName(action);
+    const removed = removedPendingOrders(action);
+    const parts = [name ? `Baja lógica de ${name}` : 'Baja lógica del equipo'];
+    if (removed !== null) parts.push(`${removed} orden(es) PENDIENTE eliminada(s)`);
+    parts.push('Las CERRADA y CANCELADA se conservan');
+    return `${parts.join('. ')}.`;
+}
+
 function render(actions) {
     const rows = actions.length
         ? actions.map((action, index) => {
-            const previous = action.estadoPrevio || null;
+            const order = orderReference(action);
+            const code = equipmentCode(action);
             return `
                 <tr class="${index === 0 ? 'top-row' : ''}">
                     <td class="mono ${index === 0 ? 'text-warning' : 'text-secondary'}">${index === 0 ? '1 · TOPE' : index + 1}</td>
                     <td>${actionBadge(action.tipo)}</td>
-                    <td class="mono">OM-${escapeHtml(action.idOrden)}</td>
-                    <td class="mono text-code">${escapeHtml(previous?.codigoEquipo || '—')}</td>
-                    <td>${escapeHtml(previous?.estado || '—')}</td>
-                    <td class="description-cell">${escapeHtml(previous?.descripcion || '—')}</td>
+                    <td class="mono">${order ? escapeHtml(order) : '—'}</td>
+                    <td class="mono text-code">${code ? escapeHtml(code) : '—'}</td>
+                    <td>${escapeHtml(previousState(action))}</td>
+                    <td class="description-cell">${escapeHtml(actionDetail(action))}</td>
                     <td class="text-secondary text-nowrap">${escapeHtml(formatDateTime(action.fecha))}</td>
                 </tr>`;
         }).join('')
@@ -37,12 +103,13 @@ function render(actions) {
         })}</td></tr>`;
 
     const top = actions[0] || null;
+    const topReference = top ? actionReference(top) : null;
 
     return `
         ${pageHeader({
-            eyebrow: 'Pila LIFO',
+            eyebrow: 'Pila LIFO persistente',
             title: 'Historial de acciones',
-            subtitle: 'Cada operación guarda una copia del estado previo. La reversión se confirma en PostgreSQL antes de desapilar.',
+            subtitle: 'La API devuelve las acciones no deshechas, de la más reciente a la más antigua. Una baja de equipo se registra como una sola acción BAJA_EQUIPO.',
             actions: `
                 <button type="button" class="btn btn-warning" id="btn-undo-history" ${actions.length ? '' : 'disabled'}>
                     <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Deshacer última acción
@@ -69,7 +136,7 @@ function render(actions) {
                                         <th scope="col">Orden</th>
                                         <th scope="col">Equipo</th>
                                         <th scope="col">Estado previo</th>
-                                        <th scope="col">Descripción</th>
+                                        <th scope="col">Detalle</th>
                                         <th scope="col">Fecha</th>
                                     </tr>
                                 </thead>
@@ -85,7 +152,7 @@ function render(actions) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="stack-properties-title">Propiedades de la pila</h2>
-                            <p class="panel-subtitle">Estructura temporal en memoria del backend.</p>
+                            <p class="panel-subtitle">Pila de deshacer persistente del backend.</p>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -98,7 +165,7 @@ function render(actions) {
                                 <dt>Tope actual</dt>
                                 <dd>
                                     ${top
-                                        ? `${actionBadge(top.tipo)} <span class="mono ms-1">OM-${escapeHtml(top.idOrden)}</span>`
+                                        ? `${actionBadge(top.tipo)} <span class="mono ms-1">${escapeHtml(topReference)}</span>`
                                         : '<span class="text-secondary">Sin acciones registradas.</span>'}
                                 </dd>
                             </div>
@@ -116,11 +183,12 @@ function render(actions) {
                         </div>
 
                         <p class="small text-secondary mt-3 mb-2">
-                            Tipos registrados: CREAR, MODIFICAR, CANCELAR y CERRAR.
+                            Tipos registrados: CREAR, MODIFICAR, CANCELAR, CERRAR y BAJA_EQUIPO.
+                            Una baja ocupa una sola fila.
                         </p>
                         <p class="small text-secondary mb-0">
                             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                            La pila no se guarda en PostgreSQL: se pierde al reiniciar el backend.
+                            La pila se persiste en el backend: se conserva al reiniciar el servicio.
                         </p>
                     </div>
                 </section>
@@ -139,10 +207,15 @@ export async function mount(root) {
             return;
         }
 
+        const reference = actionReference(top);
+        const details = top.tipo === 'BAJA_EQUIPO'
+            ? `Tipo: ${escapeHtml(top.tipo)} · Equipo: ${escapeHtml(equipmentCode(top) || '—')}. Se restaurará el equipo y las órdenes PENDIENTE eliminadas por la baja.`
+            : `Tipo: ${escapeHtml(top.tipo)} · ${escapeHtml(reference)}. La reversión se aplicará primero en PostgreSQL.`;
+
         const confirmed = await confirmDialog({
             title: 'Deshacer última acción',
             message: '¿Deshacer la acción en el tope de la pila?',
-            details: `Tipo: ${top.tipo} · Orden: OM-${top.idOrden}. La reversión se aplicará primero en PostgreSQL.`,
+            details,
             confirmText: 'Deshacer',
             variant: 'warning',
             icon: 'arrow-counterclockwise',
@@ -151,7 +224,8 @@ export async function mount(root) {
 
         try {
             await api.ordenes.deshacer();
-            showToast(`Se revirtió la acción ${top.tipo} de OM-${top.idOrden}.`);
+            const subject = reference === '—' ? '' : ` (${reference})`;
+            showToast(`Se revirtió la acción ${top.tipo}${subject}.`);
             notifyDataChanged();
             await load();
         } catch (error) {

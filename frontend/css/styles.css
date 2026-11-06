@@ -676,6 +676,7 @@ body {
 .badge-action.modificar { background: rgba(251, 191, 36, .13); color: #fcd34d; border: 1px solid rgba(251, 191, 36, .25); }
 .badge-action.cancelar { background: rgba(248, 113, 113, .13); color: #fca5a5; border: 1px solid rgba(248, 113, 113, .25); }
 .badge-action.cerrar { background: rgba(96, 165, 250, .13); color: #93c5fd; border: 1px solid rgba(96, 165, 250, .25); }
+.badge-action.baja_equipo { background: rgba(251, 146, 60, .13); color: #fdba74; border: 1px solid rgba(251, 146, 60, .25); }
 
 /* --------------------------------------------------------------------------
    Formularios y botones
