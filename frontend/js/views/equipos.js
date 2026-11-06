@@ -34,15 +34,15 @@ function render(equipos, areas, stats) {
                             title="Editar ${escapeHtml(equipo.codigo)}" aria-label="Editar ${escapeHtml(equipo.codigo)}">
                         <i class="bi bi-pencil" aria-hidden="true"></i>
                     </button>
-                    <button type="button" class="btn-table danger" data-action="delete" data-code="${escapeHtml(equipo.codigo)}"
-                            title="Eliminar ${escapeHtml(equipo.codigo)}" aria-label="Eliminar ${escapeHtml(equipo.codigo)}">
-                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                    <button type="button" class="btn-table danger" data-action="deactivate" data-code="${escapeHtml(equipo.codigo)}"
+                            title="Dar de baja ${escapeHtml(equipo.codigo)}" aria-label="Dar de baja ${escapeHtml(equipo.codigo)}">
+                        <i class="bi bi-slash-circle" aria-hidden="true"></i>
                     </button>
                 </td>
             </tr>`).join('')
         : `<tr><td colspan="5">${emptyState({
             icon: 'diagram-3',
-            title: 'No hay equipos registrados',
+            title: 'No hay equipos activos',
             description: 'Cree un área y después registre el primer equipo.',
         })}</td></tr>`;
 
@@ -73,7 +73,7 @@ function render(equipos, areas, stats) {
             <div class="col-6 col-lg-3">
                 <div class="stat-card tone-cyan">
                     <div class="stat-top">
-                        <span class="stat-label">Equipos indexados</span>
+                        <span class="stat-label">Equipos activos</span>
                         <span class="stat-icon"><i class="bi bi-diagram-3" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${escapeHtml(equipos.length)}</div>
@@ -140,7 +140,7 @@ function render(equipos, areas, stats) {
             <div class="panel-body pt-0">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small text-secondary" id="equipment-count">${equipos.length} equipo(s)</span>
-                    <span class="small text-secondary">El código se guarda en mayúsculas al crear.</span>
+                    <span class="small text-secondary">Solo se listan equipos activos; la API no expone los inactivos.</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -200,9 +200,9 @@ export async function mount(root) {
                                 title="Editar ${escapeHtml(equipo.codigo)}" aria-label="Editar ${escapeHtml(equipo.codigo)}">
                             <i class="bi bi-pencil" aria-hidden="true"></i>
                         </button>
-                        <button type="button" class="btn-table danger" data-action="delete" data-code="${escapeHtml(equipo.codigo)}"
-                                title="Eliminar ${escapeHtml(equipo.codigo)}" aria-label="Eliminar ${escapeHtml(equipo.codigo)}">
-                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                        <button type="button" class="btn-table danger" data-action="deactivate" data-code="${escapeHtml(equipo.codigo)}"
+                                title="Dar de baja ${escapeHtml(equipo.codigo)}" aria-label="Dar de baja ${escapeHtml(equipo.codigo)}">
+                            <i class="bi bi-slash-circle" aria-hidden="true"></i>
                         </button>
                     </td>
                 </tr>`).join('')
@@ -225,7 +225,7 @@ export async function mount(root) {
             const equipo = equipos.find((item) => item.codigo === button.dataset.code);
             if (!equipo) return;
             if (button.dataset.action === 'edit') openForm(equipo);
-            if (button.dataset.action === 'delete') removeEquipment(equipo);
+            if (button.dataset.action === 'deactivate') deactivateEquipment(equipo);
         });
     }
 
@@ -249,14 +249,14 @@ export async function mount(root) {
                 <form id="equipment-form" novalidate>
                     <div id="equipment-form-error"></div>
                     <div class="mb-3">
-                        <label class="form-label" for="equipment-code">Código único <span class="text-danger">*</span></label>
+                        <label class="form-label" for="equipment-code">Código del equipo <span class="text-danger">*</span></label>
                         <input class="form-control mono" id="equipment-code" name="codigo" maxlength="30"
                                required autocomplete="off" placeholder="EQ-008"
                                value="${escapeHtml(equipo?.codigo || '')}" ${editing ? 'readonly' : ''}>
                         <div class="form-text">
                             ${editing
-                                ? 'El código es la clave primaria y la API no permite cambiarlo.'
-                                : 'Máximo 30 caracteres. Se normaliza a mayúsculas.'}
+                                ? 'El código identifica al equipo en la API y no se puede cambiar.'
+                                : 'Único entre los equipos activos. Se conserva el uso de mayúsculas y minúsculas; la API solo elimina espacios al inicio y al final.'}
                         </div>
                     </div>
                     <div class="mb-3">
@@ -289,7 +289,7 @@ export async function mount(root) {
             event.preventDefault();
             errorBox.innerHTML = '';
 
-            const codigo = form.codigo.value.trim().toUpperCase();
+            const codigo = form.codigo.value.trim();
             const nombre = form.nombre.value.trim();
             const idArea = Number(form.idArea.value);
 
@@ -310,8 +310,14 @@ export async function mount(root) {
                     await api.equipos.actualizar(equipo.codigo, { nombre, idArea });
                     showToast(`Equipo ${equipo.codigo} actualizado.`);
                 } else {
-                    await api.equipos.crear({ codigo, nombre, idArea });
-                    showToast(`Equipo ${codigo} creado e indexado.`);
+                    const { reactivado, equipo: guardado } = await api.equipos.crear({ codigo, nombre, idArea });
+                    const codigoGuardado = guardado?.codigo || codigo;
+                    showToast(
+                        reactivado
+                            ? `Equipo ${codigoGuardado} reactivado; vuelve a estar activo.`
+                            : `Equipo ${codigoGuardado} creado e indexado.`,
+                        reactivado ? 'info' : 'success',
+                    );
                 }
                 modal.hide();
                 notifyDataChanged();
@@ -323,25 +329,24 @@ export async function mount(root) {
         });
     }
 
-    async function removeEquipment(equipo) {
+    async function deactivateEquipment(equipo) {
         const confirmed = await confirmDialog({
-            title: 'Eliminar equipo',
-            message: `¿Eliminar definitivamente el equipo ${equipo.codigo} (${equipo.nombre})?`,
-            details: 'Solo se elimina si no tiene órdenes asociadas. No se borra el historial en cascada.',
-            confirmText: 'Eliminar equipo',
+            title: 'Dar de baja el equipo',
+            message: `¿Dar de baja el equipo ${equipo.codigo} (${equipo.nombre})?`,
+            details: 'La baja es lógica: el equipo no se borra, deja de aparecer en el catálogo y se marca inactivo. Se eliminarán sus órdenes PENDIENTE; las CERRADA y CANCELADA se conservan. Toda la operación queda como una sola acción BAJA_EQUIPO en el historial y puede deshacerse desde allí.',
+            confirmText: 'Dar de baja',
+            variant: 'danger',
+            icon: 'slash-circle',
         });
         if (!confirmed) return;
 
         try {
             await api.equipos.eliminar(equipo.codigo);
-            showToast(`Equipo ${equipo.codigo} eliminado.`);
+            showToast(`Equipo ${equipo.codigo} dado de baja. La acción quedó registrada para deshacer.`);
             notifyDataChanged();
             await load();
         } catch (error) {
-            const hint = error.status === 409
-                ? ' El equipo tiene órdenes asociadas; primero gestione esas órdenes.'
-                : '';
-            showToast(`${error.message}${hint}`, 'danger');
+            showToast(error.message, 'danger');
         }
     }
 

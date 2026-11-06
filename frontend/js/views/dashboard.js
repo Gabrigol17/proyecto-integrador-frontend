@@ -131,7 +131,7 @@ function render(stats, queue) {
                         </div>
                         <p class="small text-secondary mt-3 mb-0">
                             <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                            La pila es temporal y vive en la memoria del proceso del backend.
+                            La pila de acciones se persiste y se conserva al reiniciar el backend.
                         </p>
                     </div>
                 </section>

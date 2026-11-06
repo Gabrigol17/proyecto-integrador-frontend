@@ -10,7 +10,7 @@ export class ApiError extends Error {
     }
 }
 
-async function request(path, { method = 'GET', body, signal } = {}) {
+async function request(path, { method = 'GET', body, signal, withStatus = false } = {}) {
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => {
         controller.abort(new DOMException('Tiempo de espera agotado', 'TimeoutError'));
@@ -53,7 +53,9 @@ async function request(path, { method = 'GET', body, signal } = {}) {
             throw new ApiError(message, response.status, data);
         }
 
-        return data;
+        // Algunos endpoints distinguen el resultado por el código HTTP (por
+        // ejemplo, POST /equipos responde 201 al crear y 200 al reactivar).
+        return withStatus ? { status: response.status, data } : data;
     } catch (error) {
         if (error instanceof ApiError) {
             throw error;
@@ -98,10 +100,18 @@ export const api = {
     equipos: {
         listar: () => request('/equipos'),
         obtener: (codigo) => request(`/equipos/${encodeURIComponent(codigo)}`),
-        crear: (data) => request('/equipos', { method: 'POST', body: data }),
+        crear: async (data) => {
+            const { status, data: equipo } = await request('/equipos', {
+                method: 'POST',
+                body: data,
+                withStatus: true,
+            });
+            return { reactivado: status === 200, equipo };
+        },
         actualizar: (codigo, data) => request(`/equipos/${encodeURIComponent(codigo)}`, { method: 'PUT', body: data }),
-        // No se usa eliminarOrdenes=true: el frontend conserva el historial.
-        eliminar: (codigo) => request(`/equipos/${encodeURIComponent(codigo)}?eliminarOrdenes=false`, { method: 'DELETE' }),
+        // Baja lógica: el backend conserva el equipo, lo marca inactivo y
+        // elimina únicamente sus órdenes PENDIENTE. No lleva parámetros.
+        eliminar: (codigo) => request(`/equipos/${encodeURIComponent(codigo)}`, { method: 'DELETE' }),
     },
 
     ordenes: {
