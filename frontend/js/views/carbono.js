@@ -145,40 +145,34 @@ function render(summary, records, { demo = false } = {}) {
         ${pageHeader({
             eyebrow: demo ? 'Escenario de demostración' : 'Datos del backend',
             title: 'Huella de carbono',
-            subtitle: demo
-                ? 'Métricas de ejemplo para presentar el módulo mientras la API no registra mediciones.'
-                : 'Emisiones calculadas por la API a partir de los registros persistidos.',
-            actions: demo
-                ? '<span class="badge rounded-pill text-bg-warning"><i class="bi bi-stars me-1" aria-hidden="true"></i> Datos de ejemplo</span>'
-                : '',
         })}
 
         <div class="row g-3 mb-3">
             ${statCard({
                 label: 'Emisiones totales',
                 value: `${metric(summary.totalEmisionesKgCo2, 'emisiones totales')} kg CO₂`,
-                detail: demo ? 'Escenario ilustrativo' : 'Total reportado por la API',
+                detail: '',
                 icon: 'cloud',
                 tone: 'green',
             })}
             ${statCard({
                 label: 'Equipos con emisiones',
                 value: metric(summary.equiposConEmisiones, 'equipos con emisiones'),
-                detail: demo ? 'Equipos del escenario' : 'Equipos incluidos en el cálculo',
+                detail: '',
                 icon: 'cpu',
                 tone: 'cyan',
             })}
             ${statCard({
                 label: 'Registros',
                 value: metric(summary.totalRegistros, 'total de registros'),
-                detail: demo ? 'Mediciones de ejemplo' : 'Mediciones registradas',
+                detail: '',
                 icon: 'journals',
                 tone: 'blue',
             })}
             ${statCard({
                 label: 'Factor de emisión',
                 value: `${metric(summary.factorEmision, 'factor de emisión')} kg CO₂/kWh`,
-                detail: demo ? 'Factor de referencia del escenario' : 'Factor reportado por la API',
+                detail: '',
                 icon: 'activity',
                 tone: 'amber',
             })}
@@ -197,7 +191,7 @@ function render(summary, records, { demo = false } = {}) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por área',
-                    demo ? 'Distribución de ejemplo por área.' : 'Distribución calculada por el backend.',
+                    '',
                     summary.emisionesPorArea,
                     'Todavía no hay emisiones asociadas a áreas.',
                 )}
@@ -205,7 +199,7 @@ function render(summary, records, { demo = false } = {}) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por equipo',
-                    demo ? 'Distribución de ejemplo por equipo.' : 'Distribución calculada por el backend.',
+                    '',
                     summary.emisionesPorEquipo,
                     'Todavía no hay emisiones asociadas a equipos.',
                 )}
@@ -214,7 +208,7 @@ function render(summary, records, { demo = false } = {}) {
 
         ${dataTable(
             'Registros de emisiones',
-            demo ? 'Mediciones de ejemplo del escenario.' : 'Mediciones almacenadas en el backend.',
+            '',
             records,
             'No hay registros de emisiones para mostrar.',
         )}`;

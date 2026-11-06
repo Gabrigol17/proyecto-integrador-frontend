@@ -107,9 +107,9 @@ function render(actions) {
 
     return `
         ${pageHeader({
-            eyebrow: 'Pila LIFO persistente',
+            eyebrow: 'Pila',
             title: 'Historial de acciones',
-            subtitle: 'La API devuelve las acciones no deshechas, de la más reciente a la más antigua. Una baja de equipo se registra como una sola acción BAJA_EQUIPO.',
+            subtitle: 'Cada operación guarda una copia del estado previo.',
             actions: `
                 <button type="button" class="btn btn-warning" id="btn-undo-history" ${actions.length ? '' : 'disabled'}>
                     <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Deshacer última acción
@@ -122,7 +122,7 @@ function render(actions) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="history-table-title">Acciones apiladas</h2>
-                            <p class="panel-subtitle">El orden de la tabla es el orden real de la pila: el tope está arriba.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                         <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">${actions.length} acción(es)</span>
                     </div>
@@ -152,7 +152,7 @@ function render(actions) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="stack-properties-title">Propiedades de la pila</h2>
-                            <p class="panel-subtitle">Pila de deshacer persistente del backend.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -175,12 +175,6 @@ function render(actions) {
                             </div>
                         </dl>
 
-                        <p class="section-label mt-4 mb-2">Complejidad</p>
-                        <div class="complexity-list">
-                            <span>Apilar (push) <b>O(1)</b></span>
-                            <span>Desapilar (pop) <b>O(1)</b></span>
-                            <span>Ver tope (peek) <b>O(1)</b></span>
-                        </div>
 
                         <p class="small text-secondary mt-3 mb-2">
                             Tipos registrados: CREAR, MODIFICAR, CANCELAR, CERRAR y BAJA_EQUIPO.

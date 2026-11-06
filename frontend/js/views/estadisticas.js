@@ -44,8 +44,7 @@ function render(stats) {
     return `
         ${pageHeader({
             eyebrow: 'Lectura de datos',
-            title: 'Indicadores y estadísticas',
-            subtitle: 'Distribuciones calculadas exclusivamente con las órdenes, equipos y áreas persistidos en PostgreSQL.',
+            title: 'Indicadores y estadísticas'
         })}
 
         <div class="summary-bar mb-3">
@@ -72,21 +71,21 @@ function render(stats) {
         </div>
 
         <div class="row g-3">
-            ${chartCard('Órdenes por estado', 'Incluye pendientes, cerradas y canceladas.', stats.ordenesPorEstado, {
+            ${chartCard('Órdenes por estado', ' ', stats.ordenesPorEstado, {
                 PENDIENTE: '#60a5fa',
                 CERRADA: '#34d399',
                 CANCELADA: '#f87171',
             })}
-            ${chartCard('Órdenes por criticidad', 'Calculada por el modelo del backend.', stats.ordenesPorCriticidad, {
+            ${chartCard('Órdenes por criticidad', ' ', stats.ordenesPorCriticidad, {
                 ALTA: '#f87171',
                 MEDIA: '#fbbf24',
                 BAJA: '#34d399',
             })}
-            ${chartCard('Órdenes por tipo', 'Mantenimiento preventivo y correctivo.', stats.ordenesPorTipo, {
+            ${chartCard('Órdenes por tipo', ' ', stats.ordenesPorTipo, {
                 CORRECTIVO: '#a78bfa',
                 PREVENTIVO: '#22d3ee',
             })}
-            ${chartCard('Distribución por área', 'El área se resuelve buscando el equipo en el índice AVL.', stats.ordenesPorArea, areaMap)}
+            ${chartCard('Distribución por área', ' ', stats.ordenesPorArea, areaMap)}
         </div>
 
         <p class="small text-secondary mt-3 mb-0">
