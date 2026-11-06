@@ -79,7 +79,7 @@ function render(stats, queue) {
                             </h2>
                             <p class="panel-subtitle">Tope de la cola de prioridad: mayor criticidad y, en empate, la más antigua.</p>
                         </div>
-                        <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP · O(1)</span>
+                        <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP</span>
                     </div>
                     <div class="panel-body position-relative">
                         ${topOrder}
@@ -96,7 +96,7 @@ function render(stats, queue) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="structures-title">Estructuras en memoria</h2>
-                            <p class="panel-subtitle">Estado actual del heap, del AVL y de la pila LIFO.</p>
+                            <p class="panel-subtitle">Estado actual del heap, del AVL y de la pila.</p>
                         </div>
                     </div>
                     <div class="panel-body">

@@ -77,7 +77,7 @@ function render(queue) {
                     </h2>
                     <p class="panel-subtitle">El orden lo calcula la estructura del backend; la interfaz no reordena la cola.</p>
                 </div>
-                <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP · RAÍZ O(1)</span>
+                <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP</span>
             </div>
             <div class="panel-body position-relative">
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">

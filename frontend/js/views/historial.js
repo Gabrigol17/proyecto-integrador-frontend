@@ -40,7 +40,7 @@ function render(actions) {
 
     return `
         ${pageHeader({
-            eyebrow: 'Pila LIFO',
+            eyebrow: 'Pila',
             title: 'Historial de acciones',
             subtitle: 'Cada operación guarda una copia del estado previo. La reversión se confirma en PostgreSQL antes de desapilar.',
             actions: `
