@@ -97,7 +97,7 @@ function render(orders, equipos) {
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title" id="orders-table-title">Historial de órdenes</h2>
-                    <p class="panel-subtitle">Datos persistidos en PostgreSQL. La criticidad la calcula el backend con la regla del sistema.</p>
+                    <p class="panel-subtitle"></p>
                 </div>
                 <span class="section-label">Seleccione una fila</span>
             </div>

@@ -61,7 +61,7 @@ function render(queue) {
         ${pageHeader({
             eyebrow: 'Heap binario',
             title: 'Cola de prioridad',
-            subtitle: 'Órdenes PENDIENTE ordenadas por el heap: mayor criticidad y, en empate, el menor consecutivo.',
+            subtitle: 'Órdenes PENDIENTE ordenadas por mayor criticidad.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/ordenes">
                     <i class="bi bi-clipboard-check" aria-hidden="true"></i> Ver órdenes
@@ -75,9 +75,9 @@ function render(queue) {
                         <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
                         Siguiente orden a atender
                     </h2>
-                    <p class="panel-subtitle">El orden lo calcula la estructura del backend; la interfaz no reordena la cola.</p>
+                    <p class="panel-subtitle"></p>
                 </div>
-                <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP</span>
+                <span class="badge rounded-pill text-bg-primary">TOPE</span>
             </div>
             <div class="panel-body position-relative">
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
@@ -94,7 +94,7 @@ function render(queue) {
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title" id="queue-table-title">Órdenes pendientes en la cola</h2>
-                    <p class="panel-subtitle">Recorrido del heap sin modificar la estructura original.</p>
+                    <p class="panel-subtitle"></p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="section-label" id="queue-total">${queue.length} orden(es)</span>

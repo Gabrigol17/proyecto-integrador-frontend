@@ -41,7 +41,6 @@ function render(stats, queue) {
         ${pageHeader({
             eyebrow: 'Resumen operativo',
             title: 'Panel principal',
-            subtitle: 'Indicadores calculados con las órdenes, equipos y áreas persistidos en PostgreSQL.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/cola">
                     <i class="bi bi-sort-down" aria-hidden="true"></i> Abrir cola
@@ -58,14 +57,14 @@ function render(stats, queue) {
             </div>` : ''}
 
         <div class="row g-3 mb-4">
-            ${statCard({ label: 'Órdenes registradas', value: stats.totalOrdenes, detail: 'Histórico en PostgreSQL', icon: 'clipboard-data', tone: 'blue' })}
-            ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: 'En la cola de prioridad', icon: 'hourglass-split', tone: 'cyan' })}
-            ${statCard({ label: 'Cerradas', value: stats.cerradas, detail: 'Atendidas', icon: 'check2-circle', tone: 'green' })}
-            ${statCard({ label: 'Canceladas', value: stats.canceladas, detail: 'Retiradas de la cola', icon: 'x-circle', tone: 'red' })}
-            ${statCard({ label: 'Equipos registrados', value: stats.equiposEnIndice, detail: `Índice AVL · altura ${stats.alturaArbolEquipos}`, icon: 'diagram-3', tone: 'cyan' })}
-            ${statCard({ label: 'Criticidad alta', value: alta, detail: 'Órdenes históricas', icon: 'exclamation-triangle', tone: 'red' })}
-            ${statCard({ label: 'Criticidad media', value: media, detail: 'Órdenes históricas', icon: 'dash-circle', tone: 'amber' })}
-            ${statCard({ label: 'Criticidad baja', value: baja, detail: 'Órdenes históricas', icon: 'arrow-down-circle', tone: 'green' })}
+            ${statCard({ label: 'Órdenes registradas', value: stats.totalOrdenes, detail: '', icon: 'clipboard-data', tone: 'blue' })}
+            ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: '', icon: 'hourglass-split', tone: 'cyan' })}
+            ${statCard({ label: 'Cerradas', value: stats.cerradas, detail: '', icon: 'check2-circle', tone: 'green' })}
+            ${statCard({ label: 'Canceladas', value: stats.canceladas, detail: '', icon: 'x-circle', tone: 'red' })}
+            ${statCard({ label: 'Equipos registrados', value: stats.equiposEnIndice, detail: ``, icon: 'diagram-3', tone: 'cyan' })}
+            ${statCard({ label: 'Criticidad alta', value: alta, detail: '', icon: 'exclamation-triangle', tone: 'red' })}
+            ${statCard({ label: 'Criticidad media', value: media, detail: '', icon: 'dash-circle', tone: 'amber' })}
+            ${statCard({ label: 'Criticidad baja', value: baja, detail: '', icon: 'arrow-down-circle', tone: 'green' })}
         </div>
 
         <div class="row g-3">
@@ -77,7 +76,7 @@ function render(stats, queue) {
                                 <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
                                 Próxima orden a atender
                             </h2>
-                            <p class="panel-subtitle">Tope de la cola de prioridad: mayor criticidad y, en empate, la más antigua.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                         <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP</span>
                     </div>
@@ -96,7 +95,7 @@ function render(stats, queue) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="structures-title">Estructuras en memoria</h2>
-                            <p class="panel-subtitle">Estado actual del heap, del AVL y de la pila.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -105,28 +104,28 @@ function render(stats, queue) {
                                 <div class="structure-tile">
                                     <div class="structure-name">Cola de prioridad</div>
                                     <div class="structure-value">${escapeHtml(stats.ordenesEnCola)}</div>
-                                    <div class="structure-detail">Órdenes pendientes en el heap</div>
+                                    <div class="structure-detail"></div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="structure-tile">
                                     <div class="structure-name">Índice AVL</div>
                                     <div class="structure-value">${escapeHtml(stats.equiposEnIndice)}</div>
-                                    <div class="structure-detail">Equipos indexados</div>
+                                    <div class="structure-detail"></div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="structure-tile">
                                     <div class="structure-name">Altura AVL</div>
                                     <div class="structure-value">${escapeHtml(stats.alturaArbolEquipos)}</div>
-                                    <div class="structure-detail">Autobalanceado · |fb| ≤ 1</div>
+                                    <div class="structure-detail"></div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="structure-tile">
                                     <div class="structure-name">Pila de acciones</div>
                                     <div class="structure-value">${escapeHtml(stats.accionesPorDeshacer)}</div>
-                                    <div class="structure-detail">Acciones por deshacer</div>
+                                    <div class="structure-detail"></div>
                                 </div>
                             </div>
                         </div>

@@ -55,7 +55,7 @@ function render(actions) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="history-table-title">Acciones apiladas</h2>
-                            <p class="panel-subtitle">El orden de la tabla es el orden real de la pila: el tope está arriba.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                         <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">${actions.length} acción(es)</span>
                     </div>
@@ -85,7 +85,7 @@ function render(actions) {
                     <div class="panel-header">
                         <div>
                             <h2 class="panel-title" id="stack-properties-title">Propiedades de la pila</h2>
-                            <p class="panel-subtitle">Estructura temporal en memoria del backend.</p>
+                            <p class="panel-subtitle"></p>
                         </div>
                     </div>
                     <div class="panel-body">
