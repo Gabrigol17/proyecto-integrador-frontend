@@ -89,7 +89,7 @@ de destruir la vista anterior y cerrar modales al navegar.
 | Gestión de áreas | `#/areas` | CRUD con conteo de equipos asociados |
 | Historial de acciones | `#/historial` | Ver la pila LIFO persistente y deshacer la última acción, incluida `BAJA_EQUIPO` |
 | Indicadores y estadísticas | `#/estadisticas` | Tarjetas y distribuciones reales de la API |
-| Huella de carbono | `#/carbono` | Resumen, emisiones por área/equipo y registros; si no hay datos, escenario de demostración marcado |
+| Huella de carbono | `#/carbono` | Consultar resumen y registros, registrar cálculos, guardar parámetros por equipo y actualizar el factor de emisión |
 
 ## 6. Endpoints usados
 
@@ -118,6 +118,10 @@ POST   /api/ordenes/historial/deshacer
 GET    /api/estadisticas
 GET    /api/carbono/resumen
 GET    /api/carbono/registros
+POST   /api/carbono/registros
+GET    /api/carbono/configuracion
+PUT    /api/carbono/configuracion
+PUT    /api/carbono/equipos/{codigo}/parametros
 ```
 
 ## 7. Contrato de equipos y bajas

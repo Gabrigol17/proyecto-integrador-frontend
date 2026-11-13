@@ -7,6 +7,12 @@ import {
     pageHeader,
     statCard,
 } from '../utils.js';
+import {
+    notifyDataChanged,
+    openModal,
+    setButtonBusy,
+    showToast,
+} from '../ui.js';
 
 const numberFormatter = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 4 });
 
@@ -64,6 +70,12 @@ function buildDemoSummary(records) {
 }
 
 const DEMO_SUMMARY = buildDemoSummary(DEMO_RECORDS);
+const MAX_DECIMAL_VALUES = {
+    horasMalEstado: { max: 99999999.99, pattern: /^\d{1,8}(?:\.\d{1,2})?$/ },
+    consumoNormalKwh: { max: 99999999.99, pattern: /^\d{1,8}(?:\.\d{1,2})?$/ },
+    porcentajeExtra: { max: 999.99, pattern: /^\d{1,3}(?:\.\d{1,2})?$/ },
+    factorEmision: { max: 999999.9999, pattern: /^\d{1,6}(?:\.\d{1,4})?$/ },
+};
 
 function isValidSummary(summary) {
     return Boolean(summary) && typeof summary === 'object' && !Array.isArray(summary);
@@ -136,7 +148,7 @@ function dataTable(title, subtitle, items, emptyDescription) {
         </section>`;
 }
 
-function render(summary, records, { demo = false } = {}) {
+function render(summary, records, equipos, configuracion, { demo = false } = {}) {
     if (!isValidSummary(summary)) {
         throw new Error('No se pudo mostrar el resumen de huella de carbono.');
     }
@@ -148,10 +160,34 @@ function render(summary, records, { demo = false } = {}) {
             subtitle: demo
                 ? 'Vista ilustrativa. Estas cifras no corresponden a mediciones reales.'
                 : 'Consulta las emisiones asociadas al consumo energético registrado.',
-            actions: demo
-                ? '<span class="badge rounded-pill text-bg-warning"><i class="bi bi-stars me-1" aria-hidden="true"></i> Datos de ejemplo</span>'
-                : '',
+            actions: `
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    ${demo
+                        ? '<span class="badge rounded-pill text-bg-warning"><i class="bi bi-stars me-1" aria-hidden="true"></i> Datos de ejemplo</span>'
+                        : ''}
+                    <button type="button" class="btn btn-outline-secondary" id="btn-carbon-parameters">
+                        <i class="bi bi-sliders" aria-hidden="true"></i> Parámetros del equipo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btn-carbon-factor">
+                        <i class="bi bi-activity" aria-hidden="true"></i> Factor de emisión
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btn-carbon-register" ${equipos.length ? '' : 'disabled'}>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar cálculo
+                    </button>
+                </div>`,
         })}
+
+        ${equipos.length ? '' : `
+            <div class="alert alert-warning d-flex align-items-center gap-2" role="status">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <span>No hay equipos activos para registrar mediciones de carbono.</span>
+            </div>`}
+
+        ${configuracion?.factorEmision === undefined ? `
+            <div class="alert alert-warning d-flex align-items-center gap-2" role="status">
+                <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                <span>No se pudo leer el factor de emisión configurado. Puedes consultar o actualizarlo desde «Factor de emisión».</span>
+            </div>` : ''}
 
         <div class="row g-3 mb-3">
             ${statCard({
@@ -177,7 +213,10 @@ function render(summary, records, { demo = false } = {}) {
             })}
             ${statCard({
                 label: 'Factor de emisión',
-                value: `${metric(summary.factorEmision, 'factor de emisión')} kg CO₂/kWh`,
+                value: `${metric(
+                    Number(demo ? summary.factorEmision : (configuracion?.factorEmision ?? summary.factorEmision)),
+                    'factor de emisión',
+                )} kg CO₂/kWh`,
                 detail: demo ? 'Factor de referencia' : 'Usado para el cálculo',
                 icon: 'activity',
                 tone: 'amber',
@@ -222,20 +261,308 @@ function render(summary, records, { demo = false } = {}) {
 
 export async function mount(root) {
     let active = true;
+    let equipos = [];
+    let summary = null;
+    let configuracion = null;
+
+    function equipmentOptions(selectedCode = '') {
+        return equipos.map((equipo) => `
+            <option value="${escapeHtml(equipo.codigo)}" ${equipo.codigo === selectedCode ? 'selected' : ''}>
+                ${escapeHtml(equipo.codigo)} — ${escapeHtml(equipo.nombre)}
+            </option>`).join('');
+    }
+
+    function numericField({ id, name, label, value = '', min = '0', max, step, hint }) {
+        return `
+            <div class="mb-3">
+                <label class="form-label" for="${id}">${label} <span class="text-danger">*</span></label>
+                <input class="form-control" id="${id}" name="${name}" type="number" inputmode="decimal"
+                       min="${min}" max="${max}" step="${step}" required value="${escapeHtml(value)}">
+                <div class="form-text">${hint}</div>
+            </div>`;
+    }
+
+    function validateDecimal(form, fieldName, label, errorBox) {
+        const field = form.elements[fieldName];
+        const raw = field.value.trim();
+        const constraints = MAX_DECIMAL_VALUES[fieldName];
+        const value = Number(raw);
+        if (!raw || !constraints.pattern.test(raw) || !Number.isFinite(value) || value < 0 || value > constraints.max) {
+            errorBox.innerHTML = `<div class="alert alert-warning py-2">Ingrese ${escapeHtml(label)} con un valor válido dentro del rango permitido.</div>`;
+            field.focus();
+            return null;
+        }
+        return value;
+    }
+
+    function savedParameters(equipo) {
+        return {
+            consumoNormalKwh: equipo?.consumoNormalKwh,
+            porcentajeExtra: equipo?.porcentajeExtra,
+        };
+    }
+
+    function openRegisterForm() {
+        if (!equipos.length) {
+            showToast('Registre primero un equipo activo para agregar mediciones.', 'warning');
+            return;
+        }
+
+        const { element, modal } = openModal({
+            title: 'Registrar cálculo de emisiones',
+            icon: 'cloud-plus',
+            size: 'modal-md',
+            body: `
+                <form id="carbon-register-form" novalidate>
+                    <div id="carbon-register-error"></div>
+                    <div class="mb-3">
+                        <label class="form-label" for="carbon-register-equipment">Equipo <span class="text-danger">*</span></label>
+                        <select class="form-select" id="carbon-register-equipment" name="codigoEquipo" required>
+                            <option value="">Seleccione un equipo…</option>
+                            ${equipmentOptions()}
+                        </select>
+                    </div>
+                    ${numericField({
+                        id: 'carbon-register-hours',
+                        name: 'horasMalEstado',
+                        label: 'Horas en mal estado',
+                        max: '99999999.99',
+                        step: '0.01',
+                        hint: 'Mínimo 0; hasta 8 dígitos enteros y 2 decimales.',
+                    })}
+                    <p class="form-text mb-0">El cálculo utilizará los parámetros guardados del equipo y el factor vigente de la planta. Si los cambiaste, guárdalos primero en «Parámetros del equipo».</p>
+                </form>`,
+            footer: `
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" form="carbon-register-form" id="carbon-register-submit">
+                    <i class="bi bi-calculator" aria-hidden="true"></i> Registrar cálculo
+                </button>`,
+        });
+
+        const form = element.querySelector('#carbon-register-form');
+        const errorBox = element.querySelector('#carbon-register-error');
+        const submit = element.querySelector('#carbon-register-submit');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorBox.innerHTML = '';
+            const codigoEquipo = form.codigoEquipo.value;
+            if (!codigoEquipo || !equipos.some((equipo) => equipo.codigo === codigoEquipo)) {
+                errorBox.innerHTML = '<div class="alert alert-warning py-2">Seleccione un equipo activo.</div>';
+                form.codigoEquipo.focus();
+                return;
+            }
+            const horasMalEstado = validateDecimal(
+                form,
+                'horasMalEstado',
+                'las horas en mal estado',
+                errorBox,
+            );
+            if (horasMalEstado === null || !form.reportValidity()) return;
+
+            setButtonBusy(submit, true, 'Registrando…');
+            try {
+                await api.carbono.crearRegistro({ codigoEquipo, horasMalEstado });
+            } catch (error) {
+                errorBox.innerHTML = `<div class="alert alert-danger py-2">${escapeHtml(error.message)}</div>`;
+                setButtonBusy(submit, false);
+                return;
+            }
+            modal.hide();
+            showToast('El cálculo de emisiones se registró correctamente.');
+            notifyDataChanged();
+            await load();
+        });
+    }
+
+    function openParametersForm() {
+        if (!equipos.length) {
+            showToast('Registre primero un equipo activo para configurar sus parámetros.', 'warning');
+            return;
+        }
+
+        const { element, modal } = openModal({
+            title: 'Parámetros energéticos del equipo',
+            icon: 'sliders',
+            size: 'modal-md',
+            body: `
+                <form id="carbon-parameters-form" novalidate>
+                    <div id="carbon-parameters-error"></div>
+                    <div class="mb-3">
+                        <label class="form-label" for="carbon-parameters-equipment">Equipo <span class="text-danger">*</span></label>
+                        <select class="form-select" id="carbon-parameters-equipment" name="codigoEquipo" required>
+                            <option value="">Seleccione un equipo…</option>
+                            ${equipmentOptions()}
+                        </select>
+                    </div>
+                    ${numericField({
+                        id: 'carbon-normal-consumption',
+                        name: 'consumoNormalKwh',
+                        label: 'Consumo normal (kWh)',
+                        max: '99999999.99',
+                        step: '0.01',
+                        hint: 'Mínimo 0; hasta 8 dígitos enteros y 2 decimales.',
+                    })}
+                    ${numericField({
+                        id: 'carbon-extra-percent',
+                        name: 'porcentajeExtra',
+                        label: 'Porcentaje extra (%)',
+                        max: '100',
+                        step: '0.01',
+                        hint: 'Entre 0 y 100; hasta 3 dígitos enteros y 2 decimales.',
+                    })}
+                    <p class="form-text mb-0">Guarda estos valores antes de registrar un cálculo para que se apliquen a la medición.</p>
+                </form>`,
+            footer: `
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" form="carbon-parameters-form" id="carbon-parameters-submit">
+                    <i class="bi bi-floppy" aria-hidden="true"></i> Guardar parámetros
+                </button>`,
+        });
+
+        const form = element.querySelector('#carbon-parameters-form');
+        const errorBox = element.querySelector('#carbon-parameters-error');
+        const submit = element.querySelector('#carbon-parameters-submit');
+        const equipmentSelect = form.codigoEquipo;
+
+        function fillSavedValues() {
+            const equipo = equipos.find((item) => item.codigo === equipmentSelect.value);
+            const parameters = savedParameters(equipo);
+            form.consumoNormalKwh.value = parameters.consumoNormalKwh ?? '';
+            form.porcentajeExtra.value = parameters.porcentajeExtra ?? '';
+        }
+
+        equipmentSelect.addEventListener('change', fillSavedValues);
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorBox.innerHTML = '';
+            const codigoEquipo = equipmentSelect.value;
+            if (!codigoEquipo || !equipos.some((equipo) => equipo.codigo === codigoEquipo)) {
+                errorBox.innerHTML = '<div class="alert alert-warning py-2">Seleccione un equipo activo.</div>';
+                equipmentSelect.focus();
+                return;
+            }
+            const consumoNormalKwh = validateDecimal(
+                form,
+                'consumoNormalKwh',
+                'el consumo normal',
+                errorBox,
+            );
+            const porcentajeExtra = validateDecimal(
+                form,
+                'porcentajeExtra',
+                'el porcentaje extra',
+                errorBox,
+            );
+            if (consumoNormalKwh === null || porcentajeExtra === null) return;
+            if (porcentajeExtra > 100) {
+                errorBox.innerHTML = '<div class="alert alert-warning py-2">El porcentaje extra debe estar entre 0 y 100.</div>';
+                form.porcentajeExtra.focus();
+                return;
+            }
+            if (!form.reportValidity()) return;
+
+            setButtonBusy(submit, true, 'Guardando…');
+            try {
+                await api.carbono.actualizarParametrosEquipo(codigoEquipo, {
+                    consumoNormalKwh,
+                    porcentajeExtra,
+                });
+            } catch (error) {
+                errorBox.innerHTML = `<div class="alert alert-danger py-2">${escapeHtml(error.message)}</div>`;
+                setButtonBusy(submit, false);
+                return;
+            }
+            modal.hide();
+            showToast(`Parámetros del equipo ${codigoEquipo} guardados.`);
+            notifyDataChanged();
+            await load();
+        });
+    }
+
+    function openFactorForm() {
+        const currentFactor = configuracion?.factorEmision ?? summary?.factorEmision ?? '';
+        const { element, modal } = openModal({
+            title: 'Factor de emisión de la planta',
+            icon: 'activity',
+            size: 'modal-md',
+            body: `
+                <form id="carbon-factor-form" novalidate>
+                    <div id="carbon-factor-error"></div>
+                    ${numericField({
+                        id: 'carbon-factor-value',
+                        name: 'factorEmision',
+                        label: 'Factor de emisión (kg CO₂/kWh)',
+                        value: currentFactor,
+                        max: '999999.9999',
+                        step: '0.0001',
+                        hint: 'Mínimo 0; hasta 6 dígitos enteros y 4 decimales.',
+                    })}
+                    <p class="form-text mb-0">El valor guardado se aplicará a los cálculos posteriores.</p>
+                </form>`,
+            footer: `
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" form="carbon-factor-form" id="carbon-factor-submit">
+                    <i class="bi bi-floppy" aria-hidden="true"></i> Guardar factor
+                </button>`,
+        });
+
+        const form = element.querySelector('#carbon-factor-form');
+        const errorBox = element.querySelector('#carbon-factor-error');
+        const submit = element.querySelector('#carbon-factor-submit');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorBox.innerHTML = '';
+            const factorEmision = validateDecimal(
+                form,
+                'factorEmision',
+                'el factor de emisión',
+                errorBox,
+            );
+            if (factorEmision === null || !form.reportValidity()) return;
+
+            setButtonBusy(submit, true, 'Guardando…');
+            try {
+                await api.carbono.actualizarConfiguracion({ factorEmision });
+            } catch (error) {
+                errorBox.innerHTML = `<div class="alert alert-danger py-2">${escapeHtml(error.message)}</div>`;
+                setButtonBusy(submit, false);
+                return;
+            }
+            modal.hide();
+            showToast('El factor de emisión de la planta se actualizó.');
+            notifyDataChanged();
+            await load();
+        });
+    }
+
+    function attachEvents() {
+        root.querySelector('#btn-carbon-register')?.addEventListener('click', openRegisterForm);
+        root.querySelector('#btn-carbon-parameters')?.addEventListener('click', openParametersForm);
+        root.querySelector('#btn-carbon-factor')?.addEventListener('click', openFactorForm);
+    }
 
     async function load() {
         if (!active) return;
         root.innerHTML = loadingPage();
         try {
-            const [summary, records] = await Promise.all([
+            const [nextSummary, records, nextEquipos, nextConfiguracion] = await Promise.all([
                 api.carbono.resumen(),
                 api.carbono.registros(),
+                api.equipos.listar(),
+                api.carbono.configuracion(),
             ]);
             if (!active) return;
+            if (!Array.isArray(records) || !Array.isArray(nextEquipos)) {
+                throw new Error('El servicio devolvió datos de carbono o equipos con un formato inesperado.');
+            }
+            summary = nextSummary;
+            equipos = nextEquipos;
+            configuracion = nextConfiguracion;
             const demo = isValidSummary(summary) && !hasCarbonData(summary, records);
             root.innerHTML = demo
-                ? render(DEMO_SUMMARY, DEMO_RECORDS, { demo: true })
-                : render(summary, records);
+                ? render(DEMO_SUMMARY, DEMO_RECORDS, equipos, configuracion, { demo: true })
+                : render(summary, records, equipos, configuracion);
+            attachEvents();
         } catch (error) {
             if (!active) return;
             root.innerHTML = errorPanel(error.message);
