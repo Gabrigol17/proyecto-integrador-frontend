@@ -74,7 +74,15 @@ export function tipoBadge(tipo) {
 
 export function actionBadge(tipo) {
     const key = String(tipo || '').toLowerCase();
-    return `<span class="badge badge-action ${escapeHtml(key)}">${escapeHtml(tipo || '—')}</span>`;
+    const labels = {
+        crear: 'Creación',
+        modificar: 'Modificación',
+        cancelar: 'Cancelación',
+        cerrar: 'Cierre',
+        baja_equipo: 'Baja de equipo',
+    };
+    const label = labels[key] || tipo || '—';
+    return `<span class="badge badge-action ${escapeHtml(key)}">${escapeHtml(label)}</span>`;
 }
 
 export function debounce(fn, delay = 180) {

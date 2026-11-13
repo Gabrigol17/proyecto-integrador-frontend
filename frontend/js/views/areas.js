@@ -30,7 +30,6 @@ function render(areas, equipos) {
             const count = counts.get(Number(area.idArea)) || 0;
             return `
                 <tr>
-                    <td class="mono text-code">${escapeHtml(area.idArea)}</td>
                     <td class="fw-semibold">${escapeHtml(area.nombre)}</td>
                     <td class="text-secondary">${escapeHtml(area.descripcion || '—')}</td>
                     <td>
@@ -48,7 +47,7 @@ function render(areas, equipos) {
                     </td>
                 </tr>`;
         }).join('')
-        : `<tr><td colspan="5">${emptyState({
+        : `<tr><td colspan="4">${emptyState({
             icon: 'buildings',
             title: 'No hay áreas registradas',
             description: 'Cree la primera área para poder asignar equipos.',
@@ -58,7 +57,7 @@ function render(areas, equipos) {
         ${pageHeader({
             eyebrow: 'Catálogo de la planta',
             title: 'Gestión de áreas',
-            subtitle: 'CRUD completo sobre PostgreSQL. Un área con equipos asociados no se puede eliminar.',
+            subtitle: 'Administra las áreas de la planta y consulta cuántos equipos tiene cada una.',
             actions: `
                 <button type="button" class="btn btn-primary" id="btn-new-area">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva área
@@ -84,7 +83,6 @@ function render(areas, equipos) {
                     <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Descripción</th>
                                 <th scope="col">Equipos</th>

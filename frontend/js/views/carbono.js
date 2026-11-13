@@ -80,7 +80,7 @@ function hasCarbonData(summary, records) {
 
 function metric(value, label) {
     if (typeof value !== 'number' || !Number.isFinite(value)) {
-        throw new Error(`La API devolvió un valor inválido para ${label}.`);
+        throw new Error(`No se pudo mostrar el valor de ${label}.`);
     }
     return numberFormatter.format(value);
 }
@@ -102,7 +102,7 @@ function columnLabel(key) {
 
 function dataTable(title, subtitle, items, emptyDescription) {
     if (!Array.isArray(items)) {
-        throw new Error(`La API devolvió un formato inválido para "${title}".`);
+        throw new Error(`No se pudo mostrar la tabla "${title}".`);
     }
 
     const rows = items.map((item) => (
@@ -138,16 +138,16 @@ function dataTable(title, subtitle, items, emptyDescription) {
 
 function render(summary, records, { demo = false } = {}) {
     if (!isValidSummary(summary)) {
-        throw new Error('La API devolvió un resumen de huella de carbono inválido.');
+        throw new Error('No se pudo mostrar el resumen de huella de carbono.');
     }
 
     return `
         ${pageHeader({
-            eyebrow: demo ? 'Escenario de demostración' : 'Datos del backend',
+            eyebrow: demo ? 'Datos de ejemplo' : 'Resumen de emisiones',
             title: 'Huella de carbono',
             subtitle: demo
-                ? 'Métricas de ejemplo para presentar el módulo mientras la API no registra mediciones.'
-                : 'Emisiones calculadas por la API a partir de los registros persistidos.',
+                ? 'Vista ilustrativa. Estas cifras no corresponden a mediciones reales.'
+                : 'Consulta las emisiones asociadas al consumo energético registrado.',
             actions: demo
                 ? '<span class="badge rounded-pill text-bg-warning"><i class="bi bi-stars me-1" aria-hidden="true"></i> Datos de ejemplo</span>'
                 : '',
@@ -157,14 +157,14 @@ function render(summary, records, { demo = false } = {}) {
             ${statCard({
                 label: 'Emisiones totales',
                 value: `${metric(summary.totalEmisionesKgCo2, 'emisiones totales')} kg CO₂`,
-                detail: demo ? 'Escenario ilustrativo' : 'Total reportado por la API',
+                detail: demo ? 'Cifras ilustrativas' : 'Emisiones acumuladas',
                 icon: 'cloud',
                 tone: 'green',
             })}
             ${statCard({
                 label: 'Equipos con emisiones',
                 value: metric(summary.equiposConEmisiones, 'equipos con emisiones'),
-                detail: demo ? 'Equipos del escenario' : 'Equipos incluidos en el cálculo',
+                detail: demo ? 'Equipos de ejemplo' : 'Con mediciones registradas',
                 icon: 'cpu',
                 tone: 'cyan',
             })}
@@ -178,7 +178,7 @@ function render(summary, records, { demo = false } = {}) {
             ${statCard({
                 label: 'Factor de emisión',
                 value: `${metric(summary.factorEmision, 'factor de emisión')} kg CO₂/kWh`,
-                detail: demo ? 'Factor de referencia del escenario' : 'Factor reportado por la API',
+                detail: demo ? 'Factor de referencia' : 'Usado para el cálculo',
                 icon: 'activity',
                 tone: 'amber',
             })}
@@ -189,7 +189,7 @@ function render(summary, records, { demo = false } = {}) {
                 <i class="bi bi-stars mt-1" aria-hidden="true"></i>
                 <div>
                     <strong>Datos de demostración.</strong>
-                    <div class="small mt-1">La API no tiene registros de emisiones. Estas cifras son un escenario ilustrativo para presentar el módulo y no representan mediciones reales.</div>
+                    <div class="small mt-1">Aún no hay mediciones registradas. Estas cifras son solo ilustrativas y no representan datos reales.</div>
                 </div>
             </div>` : ''}
 
@@ -197,7 +197,7 @@ function render(summary, records, { demo = false } = {}) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por área',
-                    demo ? 'Distribución de ejemplo por área.' : 'Distribución calculada por el backend.',
+                    demo ? 'Cifras de ejemplo por área.' : 'Emisiones acumuladas por área.',
                     summary.emisionesPorArea,
                     'Todavía no hay emisiones asociadas a áreas.',
                 )}
@@ -205,7 +205,7 @@ function render(summary, records, { demo = false } = {}) {
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por equipo',
-                    demo ? 'Distribución de ejemplo por equipo.' : 'Distribución calculada por el backend.',
+                    demo ? 'Cifras de ejemplo por equipo.' : 'Emisiones acumuladas por equipo.',
                     summary.emisionesPorEquipo,
                     'Todavía no hay emisiones asociadas a equipos.',
                 )}
@@ -214,7 +214,7 @@ function render(summary, records, { demo = false } = {}) {
 
         ${dataTable(
             'Registros de emisiones',
-            demo ? 'Mediciones de ejemplo del escenario.' : 'Mediciones almacenadas en el backend.',
+            demo ? 'Mediciones de ejemplo.' : 'Mediciones registradas.',
             records,
             'No hay registros de emisiones para mostrar.',
         )}`;

@@ -49,7 +49,7 @@ async function request(path, { method = 'GET', body, signal, withStatus = false 
         if (!response.ok) {
             const message = data && typeof data === 'object' && data.mensaje
                 ? data.mensaje
-                : `La API respondió con el código ${response.status}.`;
+                : 'No se pudo completar la solicitud. Inténtalo de nuevo.';
             throw new ApiError(message, response.status, data);
         }
 
@@ -62,11 +62,11 @@ async function request(path, { method = 'GET', body, signal, withStatus = false 
         }
 
         if (error?.name === 'AbortError' || error?.name === 'TimeoutError') {
-            throw new ApiError('La solicitud tardó demasiado. Verifique la conexión con la API.', 0, error);
+            throw new ApiError('El servicio tardó en responder. Inténtalo de nuevo.', 0, error);
         }
 
         throw new ApiError(
-            'No se pudo conectar con la API. Verifique que el servicio esté disponible y que CORS esté habilitado.',
+            'No se pudo conectar con el sistema. Verifica tu conexión e inténtalo de nuevo.',
             0,
             error,
         );

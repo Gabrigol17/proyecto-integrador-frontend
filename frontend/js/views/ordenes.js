@@ -2,7 +2,6 @@ import { api } from '../api.js';
 import {
     criticityBadge,
     criticityLevel,
-    criticityScore,
     emptyState,
     errorPanel,
     escapeHtml,
@@ -47,7 +46,7 @@ function render(orders, equipos) {
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
                             <input type="search" class="form-control" id="orders-search"
-                                   placeholder="ID, consecutivo, equipo, tipo o descripción">
+                            placeholder="Número de orden, equipo, tipo o descripción">
                         </div>
                     </div>
                     <div class="col-6 col-lg-2">
@@ -60,7 +59,7 @@ function render(orders, equipos) {
                         </select>
                     </div>
                     <div class="col-6 col-lg-2">
-                        <label class="form-label" for="orders-criticity">Criticidad</label>
+                        <label class="form-label" for="orders-criticity">Prioridad</label>
                         <select class="form-select form-select-sm" id="orders-criticity">
                             <option value="">Todas</option>
                             <option value="ALTA">Alta</option>
@@ -97,7 +96,7 @@ function render(orders, equipos) {
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title" id="orders-table-title">Historial de órdenes</h2>
-                    <p class="panel-subtitle">Datos persistidos en PostgreSQL. La criticidad la calcula el backend con la regla del sistema.</p>
+                    <p class="panel-subtitle">Consulta el estado y la prioridad de cada orden.</p>
                 </div>
                 <span class="section-label">Seleccione una fila</span>
             </div>
@@ -107,14 +106,13 @@ function render(orders, equipos) {
                         <thead>
                             <tr>
                                 <th scope="col">ID</th>
-                                <th scope="col">Consecutivo</th>
                                 <th scope="col">Equipo</th>
                                 <th scope="col">Tipo</th>
                                 <th scope="col">Descripción</th>
                                 <th scope="col">Impacto</th>
                                 <th scope="col">Riesgo</th>
                                 <th scope="col">Respaldo</th>
-                                <th scope="col">Criticidad</th>
+                                <th scope="col">Prioridad</th>
                                 <th scope="col">Estado</th>
                                 <th scope="col">Creada</th>
                             </tr>
@@ -184,7 +182,6 @@ export async function mount(root) {
             ? rows.map((order) => `
                 <tr data-id="${escapeHtml(order.id)}" class="${Number(order.id) === Number(selectedId) ? 'selected-row' : ''}">
                     <td class="mono text-secondary">OM-${escapeHtml(order.id)}</td>
-                    <td class="mono">#${escapeHtml(order.consecutivo)}</td>
                     <td class="mono text-code">${escapeHtml(order.codigoEquipo)}</td>
                     <td>${tipoBadge(order.tipo)}</td>
                     <td class="description-cell">${escapeHtml(order.descripcion)}</td>
@@ -195,7 +192,7 @@ export async function mount(root) {
                     <td>${estadoBadge(order.estado)}</td>
                     <td class="text-secondary text-nowrap">${escapeHtml(formatDateTime(order.fechaCreacion))}</td>
                 </tr>`).join('')
-            : `<tr><td colspan="11">${emptyState({
+            : `<tr>            <td colspan="10">${emptyState({
                 icon: orders.length ? 'search' : 'inbox',
                 title: orders.length ? 'Sin coincidencias' : 'No hay órdenes registradas',
                 description: orders.length
@@ -271,13 +268,11 @@ export async function mount(root) {
         });
     }
 
-    function updatePreview(form, scoreElement, levelElement) {
+    function updatePreview(form, levelElement) {
         const impacto = Number(form.impacto.value);
         const riesgo = Number(form.riesgoSeguridad.value);
         const respaldo = form.hayRespaldo.checked;
-        const score = criticityScore(impacto, riesgo, respaldo);
         const level = criticityLevel(impacto, riesgo, respaldo);
-        scoreElement.textContent = `${score} pts`;
         levelElement.innerHTML = criticityBadge(level);
     }
 
@@ -313,7 +308,7 @@ export async function mount(root) {
                             <div class="form-text">
                                 ${editing
                                     ? 'El equipo no se modifica: la orden conserva su equipo original.'
-                                    : 'El id y el consecutivo los genera PostgreSQL al confirmar.'}
+                                    : 'El número de orden se asignará automáticamente.'}
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
@@ -347,29 +342,24 @@ export async function mount(root) {
                         <div class="col-12">
                             <div class="criteria-preview d-flex align-items-center justify-content-between gap-3 flex-wrap">
                                 <div>
-                                    <div class="section-label">Puntaje calculado</div>
-                                    <div class="criteria-score" id="order-score">—</div>
-                                </div>
-                                <div class="text-end">
-                                    <div class="section-label mb-1">Nivel asignado</div>
+                                    <div class="section-label">Prioridad estimada</div>
                                     <div id="order-level">—</div>
                                 </div>
                             </div>
-                            <div class="form-text mt-2">2 × impacto + 2 × riesgo + 2 si no hay respaldo. ALTA ≥ 11 pts o riesgo 3; MEDIA ≥ 7; BAJA en otro caso.</div>
+                            <div class="form-text mt-2">La prioridad considera el impacto en producción, el riesgo y la disponibilidad de respaldo.</div>
                         </div>
                     </div>
                 </form>`,
             footer: `
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="submit" class="btn btn-primary" form="order-form" id="order-submit">
-                    <i class="bi bi-floppy" aria-hidden="true"></i> ${editing ? 'Guardar cambios' : 'Registrar y encolar'}
+                    <i class="bi bi-floppy" aria-hidden="true"></i> ${editing ? 'Guardar cambios' : 'Registrar orden'}
                 </button>`,
         });
 
         const form = element.querySelector('#order-form');
         const errorBox = element.querySelector('#order-form-error');
         const submit = element.querySelector('#order-submit');
-        const scoreElement = element.querySelector('#order-score');
         const levelElement = element.querySelector('#order-level');
         const impactValue = element.querySelector('#impact-value');
         const riskValue = element.querySelector('#risk-value');
@@ -377,7 +367,7 @@ export async function mount(root) {
         const update = () => {
             impactValue.textContent = form.impacto.value;
             riskValue.textContent = form.riesgoSeguridad.value;
-            updatePreview(form, scoreElement, levelElement);
+            updatePreview(form, levelElement);
         };
         form.addEventListener('input', update);
         update();
@@ -407,7 +397,7 @@ export async function mount(root) {
                 } else {
                     const codigoEquipo = form.codigoEquipo.value;
                     await api.ordenes.crear({ codigoEquipo, tipo, descripcion, impacto, riesgoSeguridad, hayRespaldo });
-                    showToast('Orden registrada, persistida y encolada.');
+                    showToast('Orden registrada y agregada a pendientes.');
                 }
                 modal.hide();
                 selectedId = null;
@@ -426,8 +416,8 @@ export async function mount(root) {
             title: closing ? 'Cerrar orden' : 'Cancelar orden',
             message: `¿${closing ? 'Cerrar' : 'Cancelar'} la orden OM-${order.id} (${order.codigoEquipo})?`,
             details: closing
-                ? 'Pasará a estado CERRADA, saldrá de la cola y podrá deshacerse desde el historial.'
-                : 'Pasará a estado CANCELADA, saldrá de la cola y podrá deshacerse desde el historial.',
+                ? 'La orden quedará cerrada y dejará de aparecer entre las pendientes. Puedes deshacer este cambio desde el botón «Deshacer».'
+                : 'La orden quedará cancelada y dejará de aparecer entre las pendientes. Puedes deshacer este cambio desde el botón «Deshacer».',
             confirmText: closing ? 'Cerrar orden' : 'Cancelar orden',
             variant: closing ? 'primary' : 'danger',
             icon: closing ? 'check2-circle' : 'x-circle',
@@ -451,7 +441,6 @@ export async function mount(root) {
     }
 
     function showDetail(order) {
-        const score = criticityScore(order.impacto, order.riesgoSeguridad, order.hayRespaldo);
         openModal({
             title: `Detalle de OM-${order.id}`,
             icon: 'clipboard-check',
@@ -465,12 +454,10 @@ export async function mount(root) {
                 </div>
                 <p class="order-description">${escapeHtml(order.descripcion)}</p>
                 <div class="detail-grid">
-                    <dl class="detail-item"><dt>Consecutivo</dt><dd>#${escapeHtml(order.consecutivo)}</dd></dl>
                     <dl class="detail-item"><dt>Equipo</dt><dd class="mono text-code">${escapeHtml(order.codigoEquipo)}</dd></dl>
                     <dl class="detail-item"><dt>Impacto en producción</dt><dd>${escapeHtml(order.impacto)}/3</dd></dl>
                     <dl class="detail-item"><dt>Riesgo de seguridad</dt><dd>${escapeHtml(order.riesgoSeguridad)}/3</dd></dl>
                     <dl class="detail-item"><dt>Respaldo / redundancia</dt><dd>${order.hayRespaldo ? 'Sí' : 'No'}</dd></dl>
-                    <dl class="detail-item"><dt>Puntaje de criticidad</dt><dd>${escapeHtml(score)} puntos</dd></dl>
                     <dl class="detail-item"><dt>Fecha de creación</dt><dd>${escapeHtml(formatDateTime(order.fechaCreacion))}</dd></dl>
                     <dl class="detail-item"><dt>Fecha de cierre</dt><dd>${escapeHtml(formatDateTime(order.fechaCierre))}</dd></dl>
                 </div>`,

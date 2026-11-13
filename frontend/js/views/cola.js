@@ -1,7 +1,6 @@
 import { api } from '../api.js';
 import {
     criticityBadge,
-    criticityScore,
     emptyState,
     errorPanel,
     escapeHtml,
@@ -23,45 +22,41 @@ function render(queue) {
             <span class="order-id">OM-${escapeHtml(first.id)}</span>
             <span class="badge badge-tipo">${escapeHtml(first.tipo)}</span>
             ${criticityBadge(first.criticidad)}
-            <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">
-                ${criticityScore(first.impacto, first.riesgoSeguridad, first.hayRespaldo)} pts
-            </span>
         </div>
         <p class="mb-1 fw-semibold text-code">${escapeHtml(first.codigoEquipo)}</p>
         <p class="order-description mb-2">“${escapeHtml(first.descripcion)}”</p>
         <p class="criteria-line mb-0">
             Impacto ${escapeHtml(first.impacto)}/3 · Riesgo ${escapeHtml(first.riesgoSeguridad)}/3 ·
-            Respaldo ${first.hayRespaldo ? 'Sí' : 'No (+2 pts)'} · Consecutivo #${escapeHtml(first.consecutivo)}
+            Respaldo ${first.hayRespaldo ? 'Sí' : 'No'}
         </p>
         <p class="small text-secondary mt-2 mb-0">Creada: ${escapeHtml(formatDateTime(first.fechaCreacion))}</p>`
         : emptyState({
             icon: 'check2-circle',
-            title: 'La cola está vacía',
-            description: 'No hay órdenes pendientes. Registre una orden para encolarla en el heap.',
+            title: 'No hay órdenes pendientes',
+            description: 'No hay órdenes pendientes. Registre una orden para agregarla a la lista.',
         });
 
     const rows = queue.length
         ? queue.map((order, index) => `
             <tr data-id="${escapeHtml(order.id)}" class="${index === 0 ? 'top-row' : ''}">
-                <td class="mono ${index === 0 ? 'text-warning' : 'text-secondary'}">${index === 0 ? '1º · tope' : `${index + 1}º`}</td>
+                <td class="mono ${index === 0 ? 'text-warning' : 'text-secondary'}">${index === 0 ? '1º · siguiente' : `${index + 1}º`}</td>
                 <td class="mono">OM-${escapeHtml(order.id)}</td>
                 <td class="mono text-code">${escapeHtml(order.codigoEquipo)}</td>
                 <td>${escapeHtml(order.tipo)}</td>
-                <td class="mono">${criticityScore(order.impacto, order.riesgoSeguridad, order.hayRespaldo)} pts</td>
                 <td>${criticityBadge(order.criticidad)}</td>
                 <td class="description-cell">${escapeHtml(order.descripcion)}</td>
             </tr>`).join('')
-        : `<tr><td colspan="7">${emptyState({
+        : `<tr><td colspan="6">${emptyState({
             icon: 'inbox',
             title: 'Sin órdenes pendientes',
-            description: 'La cola de prioridad no tiene elementos.',
+            description: 'No hay órdenes pendientes para mostrar.',
         })}</td></tr>`;
 
     return `
         ${pageHeader({
-            eyebrow: 'Heap binario',
-            title: 'Cola de prioridad',
-            subtitle: 'Órdenes PENDIENTE ordenadas por el heap: mayor criticidad y, en empate, el menor consecutivo.',
+            eyebrow: 'Atención de órdenes',
+            title: 'Órdenes pendientes',
+            subtitle: 'Las órdenes con mayor impacto se atienden primero; en caso de empate, se prioriza la más antigua.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/ordenes">
                     <i class="bi bi-clipboard-check" aria-hidden="true"></i> Ver órdenes
@@ -73,11 +68,11 @@ function render(queue) {
                 <div>
                     <h2 class="panel-title" id="queue-top-title">
                         <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
-                        Siguiente orden a atender
+                        Próxima orden a atender
                     </h2>
-                    <p class="panel-subtitle">El orden lo calcula la estructura del backend; la interfaz no reordena la cola.</p>
+                    <p class="panel-subtitle">Esta es la siguiente orden recomendada para atender.</p>
                 </div>
-                <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP · RAÍZ O(1)</span>
+                <span class="badge rounded-pill text-bg-primary">PRÓXIMA EN ATENCIÓN</span>
             </div>
             <div class="panel-body position-relative">
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
@@ -93,8 +88,8 @@ function render(queue) {
         <section class="panel" aria-labelledby="queue-table-title">
             <div class="panel-header">
                 <div>
-                    <h2 class="panel-title" id="queue-table-title">Órdenes pendientes en la cola</h2>
-                    <p class="panel-subtitle">Recorrido del heap sin modificar la estructura original.</p>
+                    <h2 class="panel-title" id="queue-table-title">Órdenes pendientes</h2>
+                    <p class="panel-subtitle">Ordenadas de mayor a menor prioridad.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="section-label" id="queue-total">${queue.length} orden(es)</span>
@@ -108,12 +103,11 @@ function render(queue) {
                     <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th scope="col">Pos. heap</th>
+                                <th scope="col">Posición</th>
                                 <th scope="col">ID</th>
                                 <th scope="col">Equipo</th>
                                 <th scope="col">Tipo</th>
-                                <th scope="col">Puntaje</th>
-                                <th scope="col">Criticidad</th>
+                                <th scope="col">Prioridad</th>
                                 <th scope="col">Descripción</th>
                             </tr>
                         </thead>
@@ -162,7 +156,7 @@ export async function mount(root) {
         const confirmed = await confirmDialog({
             title: 'Atender la orden más prioritaria',
             message: `¿Atender y cerrar la orden OM-${first.id} (${first.codigoEquipo})?`,
-            details: 'Pasará a estado CERRADA en PostgreSQL y saldrá de la cola. Podrá deshacerse desde el historial.',
+            details: 'La orden quedará cerrada y dejará de aparecer entre las pendientes. Puedes deshacer este cambio desde el botón «Deshacer».',
             confirmText: 'Atender y cerrar',
             variant: 'primary',
             icon: 'check2-circle',
@@ -184,7 +178,7 @@ export async function mount(root) {
         const confirmed = await confirmDialog({
             title: 'Cancelar orden',
             message: `¿Cancelar la orden OM-${order.id} (${order.codigoEquipo})?`,
-            details: 'Pasará a estado CANCELADA y saldrá de la cola. Podrá deshacerse desde el historial.',
+            details: 'La orden dejará de aparecer entre las pendientes. Puedes revertir este cambio desde «Deshacer».',
             confirmText: 'Cancelar orden',
         });
         if (!confirmed) return;

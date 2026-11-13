@@ -45,18 +45,8 @@ function render(stats) {
         ${pageHeader({
             eyebrow: 'Lectura de datos',
             title: 'Indicadores y estadísticas',
-            subtitle: 'Distribuciones calculadas exclusivamente con las órdenes, equipos y áreas persistidos en PostgreSQL.',
+            subtitle: 'Consulta las órdenes por estado, nivel de prioridad, tipo de mantenimiento y área.',
         })}
-
-        <div class="summary-bar mb-3">
-            <span><strong>${escapeHtml(stats.totalOrdenes)}</strong> órdenes históricas</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.pendientes)}</strong> pendientes en cola</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.equiposEnIndice)}</strong> equipos en el AVL</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.accionesPorDeshacer)}</strong> acciones por deshacer</span>
-        </div>
 
         ${Number(stats.totalOrdenes) === 0 ? `
             <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
@@ -67,8 +57,8 @@ function render(stats) {
         <div class="row g-3 mb-3">
             ${statCard({ label: 'Total histórico', value: stats.totalOrdenes, detail: 'Todas las órdenes', icon: 'clipboard-data', tone: 'blue' })}
             ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: 'En la cola', icon: 'hourglass-split', tone: 'cyan' })}
-            ${statCard({ label: 'Equipos en AVL', value: stats.equiposEnIndice, detail: `Altura ${stats.alturaArbolEquipos}`, icon: 'diagram-3', tone: 'purple' })}
-            ${statCard({ label: 'Acciones en pila', value: stats.accionesPorDeshacer, detail: 'Disponibles para deshacer', icon: 'clock-history', tone: 'amber' })}
+            ${statCard({ label: 'Equipos activos', value: stats.equiposEnIndice, detail: 'En la planta', icon: 'diagram-3', tone: 'purple' })}
+            ${statCard({ label: 'Cambios por deshacer', value: stats.accionesPorDeshacer, detail: 'Disponibles en el historial', icon: 'clock-history', tone: 'amber' })}
         </div>
 
         <div class="row g-3">
@@ -77,7 +67,7 @@ function render(stats) {
                 CERRADA: '#34d399',
                 CANCELADA: '#f87171',
             })}
-            ${chartCard('Órdenes por criticidad', 'Calculada por el modelo del backend.', stats.ordenesPorCriticidad, {
+            ${chartCard('Órdenes por prioridad', 'Clasificadas según el impacto y el riesgo de seguridad.', stats.ordenesPorCriticidad, {
                 ALTA: '#f87171',
                 MEDIA: '#fbbf24',
                 BAJA: '#34d399',
@@ -86,14 +76,9 @@ function render(stats) {
                 CORRECTIVO: '#a78bfa',
                 PREVENTIVO: '#22d3ee',
             })}
-            ${chartCard('Distribución por área', 'El área se resuelve buscando el equipo en el índice AVL.', stats.ordenesPorArea, areaMap)}
+            ${chartCard('Distribución por área', 'Cantidad de órdenes asociadas a cada área.', stats.ordenesPorArea, areaMap)}
         </div>
-
-        <p class="small text-secondary mt-3 mb-0">
-            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-            Los conteos incluyen órdenes PENDIENTE, CERRADA y CANCELADA. No se muestran métricas de ahorro o
-            sostenibilidad porque no forman parte de los datos registrados.
-        </p>`;
+        `;
 }
 
 export async function mount(root) {

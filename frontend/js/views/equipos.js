@@ -28,7 +28,6 @@ function render(equipos, areas, stats) {
                 <td class="mono text-code">${escapeHtml(equipo.codigo)}</td>
                 <td class="fw-semibold">${escapeHtml(equipo.nombre)}</td>
                 <td>${escapeHtml(areaMap.get(Number(equipo.idArea)) || `Área ${equipo.idArea}`)}</td>
-                <td class="mono text-secondary">${escapeHtml(equipo.idArea)}</td>
                 <td class="text-end text-nowrap">
                     <button type="button" class="btn-table" data-action="edit" data-code="${escapeHtml(equipo.codigo)}"
                             title="Editar ${escapeHtml(equipo.codigo)}" aria-label="Editar ${escapeHtml(equipo.codigo)}">
@@ -40,21 +39,17 @@ function render(equipos, areas, stats) {
                     </button>
                 </td>
             </tr>`).join('')
-        : `<tr><td colspan="5">${emptyState({
+        : `<tr><td colspan="4">${emptyState({
             icon: 'diagram-3',
             title: 'No hay equipos activos',
             description: 'Cree un área y después registre el primer equipo.',
         })}</td></tr>`;
 
-    const indexChips = equipos.length
-        ? equipos.map((equipo) => `<span class="index-chip">${escapeHtml(equipo.codigo)}</span>`).join('')
-        : '<span class="text-secondary small">Índice vacío.</span>';
-
     return `
         ${pageHeader({
-            eyebrow: 'Catálogo indexado',
-            title: 'Equipos e índice AVL',
-            subtitle: 'El backend devuelve solo los equipos activos en recorrido inorden. El código identifica al equipo y no se modifica desde la API.',
+            eyebrow: 'Inventario de la planta',
+            title: 'Equipos',
+            subtitle: 'Consulta y administra los equipos activos. El código identifica al equipo y no se puede cambiar.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/areas">
                     <i class="bi bi-buildings" aria-hidden="true"></i> Gestionar áreas
@@ -71,27 +66,17 @@ function render(equipos, areas, stats) {
             </div>` : ''}
 
         <div class="row g-3 mb-3">
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-xl-4">
                 <div class="stat-card tone-cyan">
                     <div class="stat-top">
                         <span class="stat-label">Equipos activos</span>
                         <span class="stat-icon"><i class="bi bi-diagram-3" aria-hidden="true"></i></span>
                     </div>
                     <div class="stat-value">${escapeHtml(equipos.length)}</div>
-                    <div class="stat-detail">Recorrido inorden del AVL</div>
+                    <div class="stat-detail">En la planta</div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="stat-card tone-amber">
-                    <div class="stat-top">
-                        <span class="stat-label">Altura del árbol</span>
-                        <span class="stat-icon"><i class="bi bi-tree" aria-hidden="true"></i></span>
-                    </div>
-                    <div class="stat-value">${escapeHtml(stats.alturaArbolEquipos ?? '—')}</div>
-                    <div class="stat-detail">Autobalanceado · |fb| ≤ 1</div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-xl-4">
                 <div class="stat-card tone-blue">
                     <div class="stat-top">
                         <span class="stat-label">Áreas disponibles</span>
@@ -101,7 +86,7 @@ function render(equipos, areas, stats) {
                     <div class="stat-detail">Para asignar equipos</div>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <div class="col-6 col-xl-4">
                 <div class="stat-card tone-green">
                     <div class="stat-top">
                         <span class="stat-label">Órdenes registradas</span>
@@ -113,26 +98,11 @@ function render(equipos, areas, stats) {
             </div>
         </div>
 
-        <section class="panel mb-3" aria-labelledby="avl-index-title">
-            <div class="panel-header pb-2">
-                <div>
-                    <h2 class="panel-title" id="avl-index-title">Índice ordenado (inorden)</h2>
-                    <p class="panel-subtitle">La API no expone la forma interna del árbol; sí su recorrido ordenado y su altura.</p>
-                </div>
-                <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">
-                    ${equipos.length} nodo(s) · altura ${escapeHtml(stats.alturaArbolEquipos ?? '—')}
-                </span>
-            </div>
-            <div class="panel-body pt-2">
-                <div class="index-strip" aria-label="Códigos de equipos en orden">${indexChips}</div>
-            </div>
-        </section>
-
         <section class="panel" aria-labelledby="equipment-table-title">
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title" id="equipment-table-title">Catálogo de equipos</h2>
-                    <p class="panel-subtitle">Seleccione una fila para corregir nombre o área. El código no cambia.</p>
+                    <p class="panel-subtitle">Edita los datos o da de baja un equipo desde las acciones de cada fila.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <div class="input-group input-group-sm" style="width: min(20rem, 55vw);">
@@ -145,7 +115,7 @@ function render(equipos, areas, stats) {
             <div class="panel-body pt-0">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <span class="small text-secondary" id="equipment-count">${equipos.length} equipo(s)</span>
-                    <span class="small text-secondary">Solo se listan equipos activos; la API no expone los inactivos.</span>
+                    <span class="small text-secondary">Se muestran los equipos activos.</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -154,7 +124,6 @@ function render(equipos, areas, stats) {
                                 <th scope="col">Código</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Área</th>
-                                <th scope="col">ID área</th>
                                 <th scope="col" class="text-end">Acciones</th>
                             </tr>
                         </thead>
@@ -243,7 +212,7 @@ export async function mount(root) {
         const editing = Boolean(equipo);
         const options = areas.map((area) => `
             <option value="${escapeHtml(area.idArea)}" ${Number(area.idArea) === Number(equipo?.idArea) ? 'selected' : ''}>
-                ${escapeHtml(area.nombre)} (ID ${escapeHtml(area.idArea)})
+                ${escapeHtml(area.nombre)}
             </option>`).join('');
 
         const { element, modal } = openModal({
@@ -260,8 +229,8 @@ export async function mount(root) {
                                value="${escapeHtml(equipo?.codigo || '')}" ${editing ? 'readonly' : ''}>
                         <div class="form-text">
                             ${editing
-                                ? 'El código identifica al equipo en la API y no se puede cambiar.'
-                                : 'Único entre los equipos activos. Se conserva el uso de mayúsculas y minúsculas; la API solo elimina espacios al inicio y al final.'}
+                                ? 'El código identifica al equipo y no se puede cambiar.'
+                                : 'Debe ser único entre los equipos activos.'}
                         </div>
                     </div>
                     <div class="mb-3">
