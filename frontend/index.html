@@ -108,11 +108,13 @@
                         <span class="connection-dot" aria-hidden="true"></span>
                         <span id="connection-text">Conectando</span>
                     </span>
-                    <span class="topbar-stat d-none d-xl-inline-flex" title="Acciones disponibles para deshacer">
-                        <i class="bi bi-clock-history" aria-hidden="true"></i> Pila <strong id="nav-stack">—</strong>
-                    </span>
-                    <button id="btn-undo" class="btn btn-sm btn-outline-warning" type="button"
-                            title="Deshacer la última acción de la pila" disabled>
+                    <button id="btn-theme" class="btn btn-icon theme-toggle" type="button"
+                            aria-label="Cambiar a tema oscuro" aria-pressed="false" title="Cambiar a tema oscuro">
+                        <i class="bi bi-moon-stars theme-icon-to-dark" aria-hidden="true"></i>
+                        <i class="bi bi-sun theme-icon-to-light" aria-hidden="true"></i>
+                    </button>
+                    <button id="btn-undo" class="btn btn-sm btn-outline-warning btn-undo" type="button"
+                            aria-label="Deshacer última acción" title="Deshacer el último cambio" disabled>
                         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
                         <span class="d-none d-md-inline">Deshacer última acción</span>
                         <span class="d-md-none">Deshacer</span>

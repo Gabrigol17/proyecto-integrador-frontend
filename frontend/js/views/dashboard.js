@@ -38,6 +38,7 @@ function render(stats, queue) {
         ${pageHeader({
             eyebrow: 'Resumen operativo',
             title: 'Panel principal',
+            subtitle: 'Resumen del estado de mantenimiento de la planta.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/cola">
                     <i class="bi bi-sort-down" aria-hidden="true"></i> Ver pendientes
@@ -53,87 +54,34 @@ function render(stats, queue) {
                 <span>No hay órdenes registradas todavía. Cree la primera desde «Órdenes de mantenimiento».</span>
             </div>` : ''}
 
-        <div class="row g-3 mb-4">
-            ${statCard({ label: 'Órdenes registradas', value: stats.totalOrdenes, detail: '', icon: 'clipboard-data', tone: 'blue' })}
-            ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: '', icon: 'hourglass-split', tone: 'cyan' })}
-            ${statCard({ label: 'Cerradas', value: stats.cerradas, detail: '', icon: 'check2-circle', tone: 'green' })}
-            ${statCard({ label: 'Canceladas', value: stats.canceladas, detail: '', icon: 'x-circle', tone: 'red' })}
-            ${statCard({ label: 'Equipos registrados', value: stats.equiposEnIndice, detail: ``, icon: 'diagram-3', tone: 'cyan' })}
-            ${statCard({ label: 'Criticidad alta', value: alta, detail: '', icon: 'exclamation-triangle', tone: 'red' })}
-            ${statCard({ label: 'Criticidad media', value: media, detail: '', icon: 'dash-circle', tone: 'amber' })}
-            ${statCard({ label: 'Criticidad baja', value: baja, detail: '', icon: 'arrow-down-circle', tone: 'green' })}
-        </div>
+        <section class="panel top-order-card mb-4" aria-labelledby="top-order-title">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title" id="top-order-title">
+                        <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
+                        Próxima orden a atender
+                    </h2>
+                    <p class="panel-subtitle">Se atiende primero la orden con mayor prioridad y antigüedad.</p>
+                </div>
+                <span class="badge rounded-pill text-bg-primary">PRÓXIMA EN ATENCIÓN</span>
+            </div>
+            <div class="panel-body position-relative">
+                ${topOrder}
+            </div>
+        </section>
 
         <div class="row g-3">
-            <div class="col-lg-8">
-                <section class="panel top-order-card h-100" aria-labelledby="top-order-title">
-                    <div class="panel-header">
-                        <div>
-                            <h2 class="panel-title" id="top-order-title">
-                                <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
-                                Próxima orden a atender
-                            </h2>
-                            <p class="panel-subtitle"></p>
-                        </div>
-                        <span class="badge rounded-pill text-bg-primary">TOPE DEL HEAP</span>
-                    </div>
-                    <div class="panel-body position-relative">
-                        ${topOrder}
-                        ${first ? `
-                            <a class="btn btn-sm btn-outline-secondary mt-3 position-relative" href="#/cola" style="z-index: 1;">
-                                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Gestionar en la cola
-                            </a>` : ''}
-                    </div>
-                </section>
-            </div>
+            ${statCard({ label: 'Órdenes pendientes', value: stats.pendientes, detail: 'Por atender', icon: 'hourglass-split', tone: 'cyan' })}
+            ${statCard({ label: 'Prioridad alta', value: alta, detail: 'En el historial', icon: 'exclamation-triangle', tone: 'red' })}
+            ${statCard({ label: 'Equipos activos', value: stats.equiposEnIndice, detail: 'En la planta', icon: 'diagram-3', tone: 'green' })}
+            ${statCard({ label: 'Órdenes registradas', value: stats.totalOrdenes, detail: 'En total', icon: 'clipboard-data', tone: 'blue' })}
+        </div>
 
-            <div class="col-lg-4">
-                <section class="panel h-100" aria-labelledby="structures-title">
-                    <div class="panel-header">
-                        <div>
-                            <h2 class="panel-title" id="structures-title">Estructuras en memoria</h2>
-                            <p class="panel-subtitle"></p>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="structure-tile">
-                                    <div class="structure-name">Cola de prioridad</div>
-                                    <div class="structure-value">${escapeHtml(stats.ordenesEnCola)}</div>
-                                    <div class="structure-detail"></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="structure-tile">
-                                    <div class="structure-name">Índice AVL</div>
-                                    <div class="structure-value">${escapeHtml(stats.equiposEnIndice)}</div>
-                                    <div class="structure-detail"></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="structure-tile">
-                                    <div class="structure-name">Altura AVL</div>
-                                    <div class="structure-value">${escapeHtml(stats.alturaArbolEquipos)}</div>
-                                    <div class="structure-detail"></div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="structure-tile">
-                                    <div class="structure-name">Pila de acciones</div>
-                                    <div class="structure-value">${escapeHtml(stats.accionesPorDeshacer)}</div>
-                                    <div class="structure-detail"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <p class="small text-secondary mt-3 mb-0">
-                            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-                            La pila de acciones se persiste y se conserva al reiniciar el backend.
-                        </p>
-                    </div>
-                </section>
-            </div>
-        </div>`;
+        <p class="small text-secondary mt-3 mb-0">
+            <i class="bi bi-bar-chart-line me-1" aria-hidden="true"></i>
+            Las distribuciones de órdenes cerradas, canceladas y de prioridad media o baja están en
+            <a href="#/estadisticas">Indicadores y estadísticas</a>.
+        </p>`;
 }
 
 export async function mount(root) {
