@@ -12,7 +12,10 @@ import {
 
 function render(stats, queue) {
     const first = queue[0] || null;
-    const alta = Number(stats.ordenesPorCriticidad?.ALTA || 0);
+    const ordersByCriticity = stats.ordenesPorCriticidad || {};
+    const alta = Number(ordersByCriticity.ALTA || 0);
+    const media = Number(ordersByCriticity.MEDIA || 0);
+    const baja = Number(ordersByCriticity.BAJA || 0);
 
     const topOrder = first ? `
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
