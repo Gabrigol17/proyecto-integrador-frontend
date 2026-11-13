@@ -8,12 +8,7 @@ import {
     loadingPage,
     pageHeader,
 } from '../utils.js';
-import {
-    closeModal,
-    confirmDialog,
-    notifyDataChanged,
-    showToast,
-} from '../ui.js';
+import { closeModal } from '../ui.js';
 
 function equipmentCode(action) {
     return action.codigoEquipo
@@ -58,9 +53,15 @@ function removedPendingOrders(action) {
 }
 
 function previousState(action) {
-    if (action.estadoPrevio?.estado) return action.estadoPrevio.estado;
+    if (action.estadoPrevio?.estado) {
+        return {
+            PENDIENTE: 'Pendiente',
+            CERRADA: 'Cerrada',
+            CANCELADA: 'Cancelada',
+        }[action.estadoPrevio.estado] || action.estadoPrevio.estado;
+    }
     if (action.tipo === 'BAJA_EQUIPO') {
-        return action.estadoPrevio?.activo === false ? 'INACTIVO' : 'ACTIVO';
+        return action.estadoPrevio?.activo === false ? 'Inactivo' : 'Activo';
     }
     return '—';
 }
@@ -70,13 +71,13 @@ function actionDetail(action) {
         return action.estadoPrevio?.descripcion || action.descripcion || '—';
     }
 
-    if (action.descripcion) return action.descripcion;
+    if (action.descripcion) return action.descripcion.replace(/^Baja lógica de/i, 'Se dio de baja');
 
     const name = equipmentName(action);
     const removed = removedPendingOrders(action);
-    const parts = [name ? `Baja lógica de ${name}` : 'Baja lógica del equipo'];
-    if (removed !== null) parts.push(`${removed} orden(es) PENDIENTE eliminada(s)`);
-    parts.push('Las CERRADA y CANCELADA se conservan');
+    const parts = [name ? `Se dio de baja ${name}` : 'Se dio de baja un equipo'];
+    if (removed !== null) parts.push(`${removed} orden(es) pendiente(s) retirada(s)`);
+    parts.push('Las órdenes cerradas o canceladas se conservan');
     return `${parts.join('. ')}.`;
 }
 
@@ -87,7 +88,7 @@ function render(actions) {
             const code = equipmentCode(action);
             return `
                 <tr class="${index === 0 ? 'top-row' : ''}">
-                    <td class="mono ${index === 0 ? 'text-warning' : 'text-secondary'}">${index === 0 ? '1 · TOPE' : index + 1}</td>
+                    <td class="mono ${index === 0 ? 'text-warning' : 'text-secondary'}">${index === 0 ? 'Más reciente' : index + 1}</td>
                     <td>${actionBadge(action.tipo)}</td>
                     <td class="mono">${order ? escapeHtml(order) : '—'}</td>
                     <td class="mono text-code">${code ? escapeHtml(code) : '—'}</td>
@@ -98,8 +99,8 @@ function render(actions) {
         }).join('')
         : `<tr><td colspan="7">${emptyState({
             icon: 'clock-history',
-            title: 'La pila está vacía',
-            description: 'No hay acciones disponibles para deshacer.',
+            title: 'No hay cambios recientes',
+            description: 'Cuando se realicen cambios, aparecerán aquí.',
         })}</td></tr>`;
 
     const top = actions[0] || null;
@@ -124,7 +125,7 @@ function render(actions) {
                             <h2 class="panel-title" id="history-table-title">Acciones apiladas</h2>
                             <p class="panel-subtitle"></p>
                         </div>
-                        <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">${actions.length} acción(es)</span>
+                        <span class="badge rounded-pill badge-neutral">${actions.length} cambio(s)</span>
                     </div>
                     <div class="panel-body pt-0">
                         <div class="table-responsive">
@@ -135,7 +136,7 @@ function render(actions) {
                                         <th scope="col">Acción</th>
                                         <th scope="col">Orden</th>
                                         <th scope="col">Equipo</th>
-                                        <th scope="col">Estado previo</th>
+                                        <th scope="col">Estado anterior</th>
                                         <th scope="col">Detalle</th>
                                         <th scope="col">Fecha</th>
                                     </tr>
@@ -158,19 +159,19 @@ function render(actions) {
                     <div class="panel-body">
                         <dl class="property-list">
                             <div>
-                                <dt>Acciones disponibles</dt>
+                                <dt>Cambios disponibles</dt>
                                 <dd class="fs-4 fw-bold text-warning">${actions.length}</dd>
                             </div>
                             <div>
-                                <dt>Tope actual</dt>
+                                <dt>Último cambio</dt>
                                 <dd>
                                     ${top
                                         ? `${actionBadge(top.tipo)} <span class="mono ms-1">${escapeHtml(topReference)}</span>`
-                                        : '<span class="text-secondary">Sin acciones registradas.</span>'}
+                                        : '<span class="text-secondary">Sin cambios recientes.</span>'}
                                 </dd>
                             </div>
                             <div>
-                                <dt>Última actualización</dt>
+                                <dt>Fecha</dt>
                                 <dd>${top ? escapeHtml(formatDateTime(top.fecha)) : '—'}</dd>
                             </div>
                         </dl>
@@ -194,43 +195,6 @@ export async function mount(root) {
     let active = true;
     let actions = [];
 
-    async function undo() {
-        const top = actions[0];
-        if (!top) {
-            showToast('No hay acciones previas para deshacer.', 'warning');
-            return;
-        }
-
-        const reference = actionReference(top);
-        const details = top.tipo === 'BAJA_EQUIPO'
-            ? `Tipo: ${escapeHtml(top.tipo)} · Equipo: ${escapeHtml(equipmentCode(top) || '—')}. Se restaurará el equipo y las órdenes PENDIENTE eliminadas por la baja.`
-            : `Tipo: ${escapeHtml(top.tipo)} · ${escapeHtml(reference)}. La reversión se aplicará primero en PostgreSQL.`;
-
-        const confirmed = await confirmDialog({
-            title: 'Deshacer última acción',
-            message: '¿Deshacer la acción en el tope de la pila?',
-            details,
-            confirmText: 'Deshacer',
-            variant: 'warning',
-            icon: 'arrow-counterclockwise',
-        });
-        if (!confirmed) return;
-
-        try {
-            await api.ordenes.deshacer();
-            const subject = reference === '—' ? '' : ` (${reference})`;
-            showToast(`Se revirtió la acción ${top.tipo}${subject}.`);
-            notifyDataChanged();
-            await load();
-        } catch (error) {
-            showToast(error.message, 'danger');
-        }
-    }
-
-    function attachEvents() {
-        root.querySelector('#btn-undo-history')?.addEventListener('click', undo);
-    }
-
     async function load() {
         if (!active) return;
         root.innerHTML = loadingPage();
@@ -239,7 +203,6 @@ export async function mount(root) {
             if (!active) return;
             actions = Array.isArray(data) ? data : [];
             root.innerHTML = render(actions);
-            attachEvents();
         } catch (error) {
             if (!active) return;
             root.innerHTML = errorPanel(error.message);

@@ -47,16 +47,6 @@ function render(stats) {
             title: 'Indicadores y estadísticas'
         })}
 
-        <div class="summary-bar mb-3">
-            <span><strong>${escapeHtml(stats.totalOrdenes)}</strong> órdenes históricas</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.pendientes)}</strong> pendientes en cola</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.equiposEnIndice)}</strong> equipos en el AVL</span>
-            <span>·</span>
-            <span><strong>${escapeHtml(stats.accionesPorDeshacer)}</strong> acciones por deshacer</span>
-        </div>
-
         ${Number(stats.totalOrdenes) === 0 ? `
             <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
                 <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
@@ -66,8 +56,8 @@ function render(stats) {
         <div class="row g-3 mb-3">
             ${statCard({ label: 'Total histórico', value: stats.totalOrdenes, detail: 'Todas las órdenes', icon: 'clipboard-data', tone: 'blue' })}
             ${statCard({ label: 'Pendientes', value: stats.pendientes, detail: 'En la cola', icon: 'hourglass-split', tone: 'cyan' })}
-            ${statCard({ label: 'Equipos en AVL', value: stats.equiposEnIndice, detail: `Altura ${stats.alturaArbolEquipos}`, icon: 'diagram-3', tone: 'purple' })}
-            ${statCard({ label: 'Acciones en pila', value: stats.accionesPorDeshacer, detail: 'Disponibles para deshacer', icon: 'clock-history', tone: 'amber' })}
+            ${statCard({ label: 'Equipos activos', value: stats.equiposEnIndice, detail: 'En la planta', icon: 'diagram-3', tone: 'purple' })}
+            ${statCard({ label: 'Cambios por deshacer', value: stats.accionesPorDeshacer, detail: 'Disponibles en el historial', icon: 'clock-history', tone: 'amber' })}
         </div>
 
         <div class="row g-3">
@@ -87,12 +77,7 @@ function render(stats) {
             })}
             ${chartCard('Distribución por área', ' ', stats.ordenesPorArea, areaMap)}
         </div>
-
-        <p class="small text-secondary mt-3 mb-0">
-            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-            Los conteos incluyen órdenes PENDIENTE, CERRADA y CANCELADA. No se muestran métricas de ahorro o
-            sostenibilidad porque no forman parte de los datos registrados.
-        </p>`;
+        `;
 }
 
 export async function mount(root) {

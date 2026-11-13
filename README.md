@@ -2,7 +2,8 @@
 
 Frontend estático del **Sistema de Gestión de Mantenimiento Industrial**, construido con
 HTML5, CSS3, Bootstrap 5 y JavaScript puro. Consume la API REST de Spring Boot mediante
-`fetch()` y no necesita compilación ni empaquetador.
+`fetch()` y no necesita compilación ni empaquetador. Incluye temas claro y oscuro con
+preferencia persistida en `localStorage`.
 
 ## 1. Ejecutar
 
@@ -56,7 +57,7 @@ La API no usa cookies ni credenciales, por eso el valor `*` es seguro para este 
 ```text
 frontend/
 ├── index.html              Shell de la SPA, navegación, topbar, toasts y modales
-├── css/styles.css          Tema oscuro, layout responsive y componentes
+├── css/styles.css          Temas claro/oscuro, layout responsive y componentes
 ├── js/
 │   ├── config.js           API_URL y tiempo máximo de espera
 │   ├── api.js              Cliente fetch y métodos de todos los endpoints
@@ -81,14 +82,14 @@ de destruir la vista anterior y cerrar modales al navegar.
 
 | Panel Swing | Vista web | Operaciones |
 |---|---|---|
-| Panel principal | `#/dashboard` | Indicadores, próxima orden y estado de cola/AVL/pila |
+| Panel principal | `#/dashboard` | Próxima orden e indicadores principales; resumen de la pila y Deshacer en la barra superior |
 | Órdenes de mantenimiento | `#/ordenes` | Listar, filtrar, crear, modificar, cerrar, cancelar y ver detalle |
 | Cola de prioridad | `#/cola` | Ver tope y recorrido, atender la más prioritaria y cancelar |
 | Equipos e índice AVL | `#/equipos` | Listar solo activos, buscar, crear o reactivar, editar nombre/área y dar de baja lógica |
 | Gestión de áreas | `#/areas` | CRUD con conteo de equipos asociados |
 | Historial de acciones | `#/historial` | Ver la pila LIFO persistente y deshacer la última acción, incluida `BAJA_EQUIPO` |
 | Indicadores y estadísticas | `#/estadisticas` | Tarjetas y distribuciones reales de la API |
-| Huella de carbono | `#/carbono` | Resumen, emisiones por área/equipo y registros; si no hay datos, escenario de demostración marcado |
+| Huella de carbono | `#/carbono` | Consultar resumen y registros, registrar cálculos, guardar parámetros por equipo y actualizar el factor de emisión |
 
 ## 6. Endpoints usados
 
@@ -117,6 +118,10 @@ POST   /api/ordenes/historial/deshacer
 GET    /api/estadisticas
 GET    /api/carbono/resumen
 GET    /api/carbono/registros
+POST   /api/carbono/registros
+GET    /api/carbono/configuracion
+PUT    /api/carbono/configuracion
+PUT    /api/carbono/equipos/{codigo}/parametros
 ```
 
 ## 7. Contrato de equipos y bajas

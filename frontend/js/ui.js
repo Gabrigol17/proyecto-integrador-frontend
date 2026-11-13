@@ -49,16 +49,9 @@ export function setConnection(state, label) {
     chip.title = label;
 }
 
-export function setHeaderStats({ queue, avl, stack } = {}) {
-    const queueElement = document.getElementById('nav-queue');
-    const avlElement = document.getElementById('nav-avl');
-    const stackElement = document.getElementById('nav-stack');
+export function setUndoAvailable(count) {
     const undoButton = document.getElementById('btn-undo');
-
-    if (queueElement && queue !== undefined) queueElement.textContent = queue;
-    if (avlElement && avl !== undefined) avlElement.textContent = avl;
-    if (stackElement && stack !== undefined) stackElement.textContent = stack;
-    if (undoButton && stack !== undefined) undoButton.disabled = Number(stack) <= 0;
+    if (undoButton && count !== undefined) undoButton.disabled = Number(count) <= 0;
 }
 
 export function setLastUpdated(date = new Date()) {

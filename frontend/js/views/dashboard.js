@@ -2,7 +2,6 @@ import { api } from '../api.js';
 import {
     criticityBadge,
     criticityLevel,
-    criticityScore,
     emptyState,
     errorPanel,
     escapeHtml,
@@ -14,27 +13,22 @@ import {
 function render(stats, queue) {
     const first = queue[0] || null;
     const alta = Number(stats.ordenesPorCriticidad?.ALTA || 0);
-    const media = Number(stats.ordenesPorCriticidad?.MEDIA || 0);
-    const baja = Number(stats.ordenesPorCriticidad?.BAJA || 0);
 
     const topOrder = first ? `
         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
             <span class="order-id">OM-${escapeHtml(first.id)}</span>
             <span class="badge badge-tipo">${escapeHtml(first.tipo)}</span>
             ${criticityBadge(first.criticidad || criticityLevel(first.impacto, first.riesgoSeguridad, first.hayRespaldo))}
-            <span class="badge rounded-pill text-bg-dark border border-secondary-subtle">
-                ${criticityScore(first.impacto, first.riesgoSeguridad, first.hayRespaldo)} pts
-            </span>
         </div>
         <p class="mb-1 fw-semibold text-code">${escapeHtml(first.codigoEquipo)}</p>
         <p class="order-description mb-2">“${escapeHtml(first.descripcion)}”</p>
         <p class="criteria-line mb-0">
             Impacto ${escapeHtml(first.impacto)}/3 · Riesgo ${escapeHtml(first.riesgoSeguridad)}/3 ·
-            Respaldo ${first.hayRespaldo ? 'Sí' : 'No (+2 pts)'} · Consecutivo #${escapeHtml(first.consecutivo)}
+            Respaldo ${first.hayRespaldo ? 'Sí' : 'No'}
         </p>` : emptyState({
         icon: 'check2-circle',
         title: 'Sin órdenes pendientes',
-        description: 'La cola de prioridad está vacía. Registre una orden para que aparezca aquí.',
+        description: 'No hay órdenes pendientes. Registra una orden para que aparezca aquí.',
     });
 
     return `
@@ -43,7 +37,7 @@ function render(stats, queue) {
             title: 'Panel principal',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/cola">
-                    <i class="bi bi-sort-down" aria-hidden="true"></i> Abrir cola
+                    <i class="bi bi-sort-down" aria-hidden="true"></i> Ver pendientes
                 </a>
                 <a class="btn btn-primary" href="#/ordenes">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Ir a órdenes
@@ -156,7 +150,7 @@ export async function mount(root) {
                 ${pageHeader({
                     eyebrow: 'Resumen operativo',
                     title: 'Panel principal',
-                    subtitle: 'No se pudieron recuperar los indicadores.',
+                    subtitle: 'No se pudo cargar el resumen de la planta.',
                 })}
                 ${errorPanel(error.message)}`;
         }

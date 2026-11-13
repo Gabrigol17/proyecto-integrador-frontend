@@ -30,7 +30,6 @@ function render(areas, equipos) {
             const count = counts.get(Number(area.idArea)) || 0;
             return `
                 <tr>
-                    <td class="mono text-code">${escapeHtml(area.idArea)}</td>
                     <td class="fw-semibold">${escapeHtml(area.nombre)}</td>
                     <td class="text-secondary">${escapeHtml(area.descripcion || '—')}</td>
                     <td>
@@ -48,7 +47,7 @@ function render(areas, equipos) {
                     </td>
                 </tr>`;
         }).join('')
-        : `<tr><td colspan="5">${emptyState({
+        : `<tr><td colspan="4">${emptyState({
             icon: 'buildings',
             title: 'No hay áreas registradas',
             description: 'Cree la primera área para poder asignar equipos.',
@@ -84,7 +83,6 @@ function render(areas, equipos) {
                     <table class="table table-hover align-middle">
                         <thead>
                             <tr>
-                                <th scope="col">ID</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Descripción</th>
                                 <th scope="col">Equipos</th>
