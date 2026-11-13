@@ -44,8 +44,7 @@ function render(stats) {
     return `
         ${pageHeader({
             eyebrow: 'Lectura de datos',
-            title: 'Indicadores y estadísticas',
-            subtitle: 'Consulta las órdenes por estado, nivel de prioridad, tipo de mantenimiento y área.',
+            title: 'Indicadores y estadísticas'
         })}
 
         ${Number(stats.totalOrdenes) === 0 ? `
@@ -62,21 +61,21 @@ function render(stats) {
         </div>
 
         <div class="row g-3">
-            ${chartCard('Órdenes por estado', 'Incluye pendientes, cerradas y canceladas.', stats.ordenesPorEstado, {
+            ${chartCard('Órdenes por estado', ' ', stats.ordenesPorEstado, {
                 PENDIENTE: '#60a5fa',
                 CERRADA: '#34d399',
                 CANCELADA: '#f87171',
             })}
-            ${chartCard('Órdenes por prioridad', 'Clasificadas según el impacto y el riesgo de seguridad.', stats.ordenesPorCriticidad, {
+            ${chartCard('Órdenes por criticidad', ' ', stats.ordenesPorCriticidad, {
                 ALTA: '#f87171',
                 MEDIA: '#fbbf24',
                 BAJA: '#34d399',
             })}
-            ${chartCard('Órdenes por tipo', 'Mantenimiento preventivo y correctivo.', stats.ordenesPorTipo, {
+            ${chartCard('Órdenes por tipo', ' ', stats.ordenesPorTipo, {
                 CORRECTIVO: '#a78bfa',
                 PREVENTIVO: '#22d3ee',
             })}
-            ${chartCard('Distribución por área', 'Cantidad de órdenes asociadas a cada área.', stats.ordenesPorArea, areaMap)}
+            ${chartCard('Distribución por área', ' ', stats.ordenesPorArea, areaMap)}
         </div>
         `;
 }

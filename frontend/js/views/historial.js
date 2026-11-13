@@ -108,9 +108,13 @@ function render(actions) {
 
     return `
         ${pageHeader({
-            eyebrow: 'Actividad reciente',
+            eyebrow: 'Pila',
             title: 'Historial de acciones',
-            subtitle: 'Consulta los cambios recientes. El más reciente aparece primero; puedes revertirlo con «Deshacer».',
+            subtitle: 'Cada operación guarda una copia del estado previo.',
+            actions: `
+                <button type="button" class="btn btn-warning" id="btn-undo-history" ${actions.length ? '' : 'disabled'}>
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Deshacer última acción
+                </button>`,
         })}
 
         <div class="row g-3">
@@ -118,8 +122,8 @@ function render(actions) {
                 <section class="panel" aria-labelledby="history-table-title">
                     <div class="panel-header">
                         <div>
-                            <h2 class="panel-title" id="history-table-title">Cambios recientes</h2>
-                            <p class="panel-subtitle">El cambio más reciente aparece al inicio.</p>
+                            <h2 class="panel-title" id="history-table-title">Acciones apiladas</h2>
+                            <p class="panel-subtitle"></p>
                         </div>
                         <span class="badge rounded-pill badge-neutral">${actions.length} cambio(s)</span>
                     </div>
@@ -148,8 +152,8 @@ function render(actions) {
                 <section class="panel h-100" aria-labelledby="stack-properties-title">
                     <div class="panel-header">
                         <div>
-                            <h2 class="panel-title" id="stack-properties-title">Resumen de cambios</h2>
-                            <p class="panel-subtitle">Cambios que puedes revertir.</p>
+                            <h2 class="panel-title" id="stack-properties-title">Propiedades de la pila</h2>
+                            <p class="panel-subtitle"></p>
                         </div>
                     </div>
                     <div class="panel-body">
@@ -172,6 +176,15 @@ function render(actions) {
                             </div>
                         </dl>
 
+
+                        <p class="small text-secondary mt-3 mb-2">
+                            Tipos registrados: CREAR, MODIFICAR, CANCELAR, CERRAR y BAJA_EQUIPO.
+                            Una baja ocupa una sola fila.
+                        </p>
+                        <p class="small text-secondary mb-0">
+                            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                            La pila se persiste en el backend: se conserva al reiniciar el servicio.
+                        </p>
                     </div>
                 </section>
             </div>
