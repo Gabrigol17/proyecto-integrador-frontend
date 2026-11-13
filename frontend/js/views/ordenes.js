@@ -96,7 +96,7 @@ function render(orders, equipos) {
             <div class="panel-header">
                 <div>
                     <h2 class="panel-title" id="orders-table-title">Historial de órdenes</h2>
-                    <p class="panel-subtitle"></p>
+                    <p class="panel-subtitle">Consulta el estado y la prioridad de cada orden.</p>
                 </div>
                 <span class="section-label">Seleccione una fila</span>
             </div>

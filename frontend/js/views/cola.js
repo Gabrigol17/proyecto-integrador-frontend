@@ -54,9 +54,9 @@ function render(queue) {
 
     return `
         ${pageHeader({
-            eyebrow: 'Heap binario',
-            title: 'Cola de prioridad',
-            subtitle: 'Órdenes PENDIENTE ordenadas por mayor criticidad.',
+            eyebrow: 'Atención de órdenes',
+            title: 'Órdenes pendientes',
+            subtitle: 'Las órdenes con mayor impacto se atienden primero; en caso de empate, se prioriza la más antigua.',
             actions: `
                 <a class="btn btn-outline-secondary" href="#/ordenes">
                     <i class="bi bi-clipboard-check" aria-hidden="true"></i> Ver órdenes
@@ -70,9 +70,9 @@ function render(queue) {
                         <i class="bi bi-lightning-charge me-1 text-info" aria-hidden="true"></i>
                         Próxima orden a atender
                     </h2>
-                    <p class="panel-subtitle"></p>
+                    <p class="panel-subtitle">Esta es la siguiente orden recomendada para atender.</p>
                 </div>
-                <span class="badge rounded-pill text-bg-primary">TOPE</span>
+                <span class="badge rounded-pill text-bg-primary">PRÓXIMA EN ATENCIÓN</span>
             </div>
             <div class="panel-body position-relative">
                 <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
@@ -88,8 +88,8 @@ function render(queue) {
         <section class="panel" aria-labelledby="queue-table-title">
             <div class="panel-header">
                 <div>
-                    <h2 class="panel-title" id="queue-table-title">Órdenes pendientes en la cola</h2>
-                    <p class="panel-subtitle"></p>
+                    <h2 class="panel-title" id="queue-table-title">Órdenes pendientes</h2>
+                    <p class="panel-subtitle">Ordenadas de mayor a menor prioridad.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="section-label" id="queue-total">${queue.length} orden(es)</span>

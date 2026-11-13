@@ -157,6 +157,24 @@ function render(summary, records, equipos, configuracion, { demo = false } = {})
         ${pageHeader({
             eyebrow: demo ? 'Datos de ejemplo' : 'Resumen de emisiones',
             title: 'Huella de carbono',
+            subtitle: demo
+                ? 'Vista ilustrativa. Estas cifras no corresponden a mediciones reales.'
+                : 'Consulta las emisiones asociadas al consumo energético registrado.',
+            actions: `
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    ${demo
+                        ? '<span class="badge rounded-pill text-bg-warning"><i class="bi bi-stars me-1" aria-hidden="true"></i> Datos de ejemplo</span>'
+                        : ''}
+                    <button type="button" class="btn btn-outline-secondary" id="btn-carbon-parameters">
+                        <i class="bi bi-sliders" aria-hidden="true"></i> Parámetros del equipo
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="btn-carbon-factor">
+                        <i class="bi bi-activity" aria-hidden="true"></i> Factor de emisión
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btn-carbon-register" ${equipos.length ? '' : 'disabled'}>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Registrar cálculo
+                    </button>
+                </div>`,
         })}
 
         ${equipos.length ? '' : `
@@ -175,28 +193,31 @@ function render(summary, records, equipos, configuracion, { demo = false } = {})
             ${statCard({
                 label: 'Emisiones totales',
                 value: `${metric(summary.totalEmisionesKgCo2, 'emisiones totales')} kg CO₂`,
-                detail: '',
+                detail: demo ? 'Cifras ilustrativas' : 'Emisiones acumuladas',
                 icon: 'cloud',
                 tone: 'green',
             })}
             ${statCard({
                 label: 'Equipos con emisiones',
                 value: metric(summary.equiposConEmisiones, 'equipos con emisiones'),
-                detail: '',
+                detail: demo ? 'Equipos de ejemplo' : 'Con mediciones registradas',
                 icon: 'cpu',
                 tone: 'cyan',
             })}
             ${statCard({
                 label: 'Registros',
                 value: metric(summary.totalRegistros, 'total de registros'),
-                detail: '',
+                detail: demo ? 'Mediciones de ejemplo' : 'Mediciones registradas',
                 icon: 'journals',
                 tone: 'blue',
             })}
             ${statCard({
                 label: 'Factor de emisión',
-                value: `${metric(summary.factorEmision, 'factor de emisión')} kg CO₂/kWh`,
-                detail: '',
+                value: `${metric(
+                    Number(demo ? summary.factorEmision : (configuracion?.factorEmision ?? summary.factorEmision)),
+                    'factor de emisión',
+                )} kg CO₂/kWh`,
+                detail: demo ? 'Factor de referencia' : 'Usado para el cálculo',
                 icon: 'activity',
                 tone: 'amber',
             })}
@@ -215,7 +236,7 @@ function render(summary, records, equipos, configuracion, { demo = false } = {})
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por área',
-                    '',
+                    demo ? 'Cifras de ejemplo por área.' : 'Emisiones acumuladas por área.',
                     summary.emisionesPorArea,
                     'Todavía no hay emisiones asociadas a áreas.',
                 )}
@@ -223,7 +244,7 @@ function render(summary, records, equipos, configuracion, { demo = false } = {})
             <div class="col-xl-6">
                 ${dataTable(
                     'Emisiones por equipo',
-                    '',
+                    demo ? 'Cifras de ejemplo por equipo.' : 'Emisiones acumuladas por equipo.',
                     summary.emisionesPorEquipo,
                     'Todavía no hay emisiones asociadas a equipos.',
                 )}
@@ -232,7 +253,7 @@ function render(summary, records, equipos, configuracion, { demo = false } = {})
 
         ${dataTable(
             'Registros de emisiones',
-            '',
+            demo ? 'Mediciones de ejemplo.' : 'Mediciones registradas.',
             records,
             'No hay registros de emisiones para mostrar.',
         )}`;
